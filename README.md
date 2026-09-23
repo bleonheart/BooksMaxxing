@@ -1,11 +1,8 @@
 <p align="center">
- <strong>Codex — Static Project Gutenberg Reader</strong><br/>
- A deploy-time digital library built for GitHub Pages.<br/>
- Search, browse, and read thousands of public-domain books without running a backend server.
-</p>
-
-<p align="center">
- <img src="./logo.svg" alt="Codex Logo" width="220" />
+  <strong>Codex — Static Project Gutenberg Reader</strong><br/>
+  A deploy-time digital library built for GitHub Pages.<br/>
+  Search, browse, and read thousands of public-domain books without running a backend server.<br/><br/>
+  <img src="./assets/logo.png" alt="Codex Logo" width="180" />
 </p>
 
 <p align="center">
@@ -14,6 +11,8 @@
   <img src="https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white" alt="Python 3.13" />
   <img src="https://img.shields.io/badge/Backend-None-92b95a" alt="No Runtime Backend" />
 </p>
+
+<h1 align="center">Codex</h1>
 
 ---
 
@@ -143,7 +142,7 @@ env:
 | `MAX_BOOK_BYTES` | Maximum uncompressed size allowed for a single book. |
 | `MAX_BOOKS` | Maximum number of books to include. `0` disables the explicit count limit. |
 | `DOWNLOAD_DELAY` | Delay in seconds between uncached mirror downloads. |
-| `GUTENBERG_MIRRORS` | Comma-separated Gutenberg-compatible HTTP mirrors. Codex tries them in order. |
+| `GUTENBERG_MIRRORS` | Comma-separated Gutenberg mirror roots that expose the generated `cache/epub` collection. Codex tries them in order. |
 
 ### English-Only Library
 
@@ -275,7 +274,7 @@ Codex uses:
 - **Project Gutenberg** for public-domain ebook text
 - **Gutendex** for searchable Gutenberg metadata
 
-The build process enumerates readable titles through Gutendex and downloads the text from Gutenberg-compatible mirrors instead of scraping normal book pages or calling the `robot/harvest` endpoint. Copyright status may differ between jurisdictions, so anyone publicly redistributing generated content should consider the laws that apply to their deployment.
+The build process enumerates readable titles through Gutendex and downloads generated plain-text files from each mirror's `cache/epub/<id>/` tree instead of probing legacy ZIP paths, scraping normal book pages, or calling the `robot/harvest` endpoint. Copyright status may differ between jurisdictions, so anyone publicly redistributing generated content should consider the laws that apply to their deployment.
 
 ## Contributing
 
