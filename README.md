@@ -1,8 +1,11 @@
 <p align="center">
-  <strong>Codex — Static Project Gutenberg Reader</strong><br/>
-  A deploy-time digital library built for GitHub Pages.<br/>
-  Search, browse, and read thousands of public-domain books without running a backend server.<br/><br/>
-  <img src="./assets/logo.png" alt="Codex Logo" width="180" />
+ <strong>Codex — Static Project Gutenberg Reader</strong><br/>
+ A deploy-time digital library built for GitHub Pages.<br/>
+ Search, browse, and read thousands of public-domain books without running a backend server.
+</p>
+
+<p align="center">
+ <img src="./logo.svg" alt="Codex Logo" width="220" />
 </p>
 
 <p align="center">
@@ -11,8 +14,6 @@
   <img src="https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white" alt="Python 3.13" />
   <img src="https://img.shields.io/badge/Backend-None-92b95a" alt="No Runtime Backend" />
 </p>
-
-<h1 align="center">Codex</h1>
 
 ---
 
