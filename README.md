@@ -65,11 +65,15 @@ The workflow will:
 
 ### Reader
 
-- Single-page and two-page reading layouts
+- **Desktop mode**  
+  Dense archive layout with the persistent library sidebar, desktop window chrome, keyboard navigation, and optional one- or two-page reading.
+
+- **Phone mode**  
+  Touch-first catalog with sticky search, larger book targets, single-page reading, compact reader controls, fixed page navigation, and left/right swipe gestures.
+
 - Adjustable font size
-- Keyboard navigation
 - Per-book reading progress using `localStorage`
-- Responsive browser-based reading interface
+- Automatic layout switching at the phone breakpoint
 - No login or runtime API required
 
 ### Deployment
