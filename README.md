@@ -292,3 +292,13 @@ Improvements to the reader, build pipeline, catalog generation, and interface ar
   <strong>Build once. Read anywhere.</strong><br/>
   Static hosting, automatic library generation, and no runtime backend.
 </p>
+
+---
+
+## License
+
+This project is licensed under the [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0).
+
+Use, modification, and redistribution are permitted only for purposes allowed by that license. Commercial use is not licensed under these terms.
+
+See [LICENSE](./LICENSE) for details.
