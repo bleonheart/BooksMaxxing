@@ -5,6 +5,7 @@ import gzip
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import time
@@ -130,43 +131,45 @@ def fetch_catalog_page(page: int, languages: list[str], cache_catalog: Path) -> 
         raise
 
 
-def text_filenames_from_metadata(book_id: int, metadata: dict) -> list[str]:
-    filenames: list[str] = []
+def mirror_directory(book_id: int) -> str:
+    value = str(book_id)
+    prefix = "/".join(value[:-1])
+    return f"{prefix}/{value}" if prefix else value
+
+
+def text_stems_from_metadata(book_id: int, metadata: dict) -> list[str]:
+    stems: list[str] = []
     formats = metadata.get("formats") if isinstance(metadata.get("formats"), dict) else {}
 
     for mime, url in formats.items():
         if not isinstance(mime, str) or not mime.startswith("text/plain") or not isinstance(url, str):
             continue
-        path = urllib.parse.urlparse(url).path
-        marker = f"/cache/epub/{book_id}/"
-        if marker not in path:
-            continue
-        filename = Path(path).name
-        if filename.lower().endswith(".txt") and filename not in filenames:
-            filenames.append(filename)
+        filename = Path(urllib.parse.urlparse(url).path).name
+        match = re.match(r"^(\d+(?:-[A-Za-z0-9]+)?)\.txt(?:\..*)?$", filename, re.IGNORECASE)
+        if match:
+            stems.append(match.group(1))
 
-    for filename in (f"pg{book_id}.txt", f"pg{book_id}-images.txt"):
-        if filename not in filenames:
-            filenames.append(filename)
+    for stem in (f"{book_id}-0", str(book_id), f"{book_id}-8"):
+        if stem not in stems:
+            stems.append(stem)
 
-    return filenames
-
-
-def mirror_epub_base(mirror: str) -> str:
-    base = mirror.rstrip("/")
-    if base.lower().endswith("/cache/epub"):
-        return base
-    return f"{base}/cache/epub"
+    return stems
 
 
 def book_candidates(book_id: int, metadata: dict, mirrors: list[str]) -> list[str]:
-    filenames = text_filenames_from_metadata(book_id, metadata)
+    directory = mirror_directory(book_id)
     candidates: list[str] = []
 
     for mirror in mirrors:
-        base = mirror_epub_base(mirror)
-        for filename in filenames:
-            candidates.append(f"{base}/{book_id}/{urllib.parse.quote(filename)}")
+        base = mirror.rstrip("/")
+        for stem in text_stems_from_metadata(book_id, metadata):
+            candidates.append(f"{base}/{directory}/{stem}.zip")
+        candidates.extend(
+            [
+                f"{base}/cache/epub/{book_id}/pg{book_id}.txt",
+                f"{base}/cache/epub/{book_id}/pg{book_id}-images.txt",
+            ]
+        )
 
     unique: list[str] = []
     seen: set[str] = set()
@@ -260,13 +263,21 @@ def download_book(
     if cached.exists() and cached.stat().st_size > 0:
         return cached
 
-    candidates = book_candidates(book_id, metadata, mirrors)
-    last_error: Exception | None = None
-
-    for url in candidates:
+    for url in book_candidates(book_id, metadata, mirrors):
         try:
-            data = request_bytes(url, "text/plain,*/*;q=0.5", 90, max_book_bytes, 1)
-            text = decode_text(data)
+            if url.lower().endswith(".zip"):
+                data = request_bytes(
+                    url,
+                    "application/zip,application/octet-stream,*/*;q=0.5",
+                    90,
+                    max_book_bytes + 8 * 1024 * 1024,
+                    1,
+                )
+                text = extract_archive(data, max_book_bytes)
+            else:
+                data = request_bytes(url, "text/plain,*/*;q=0.5", 90, max_book_bytes, 1)
+                text = decode_text(data)
+
             if not text.strip():
                 raise ValueError("book text is empty")
 
@@ -275,15 +286,8 @@ def download_book(
             if delay > 0:
                 time.sleep(delay)
             return cached
-        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, ValueError, OSError) as error:
-            last_error = error
-
-    if last_error is not None:
-        print(
-            f"book {book_id}: no readable text found across {len(candidates)} mirror candidates; "
-            f"last error: {last_error}",
-            file=sys.stderr,
-        )
+        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, ValueError, zipfile.BadZipFile, OSError) as error:
+            print(f"skip candidate {url}: {error}", file=sys.stderr)
 
     if delay > 0:
         time.sleep(delay)
