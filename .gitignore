@@ -1,0 +1,4 @@
+.book-cache/
+site/
+__pycache__/
+*.pyc

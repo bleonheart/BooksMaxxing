@@ -1,0 +1,85 @@
+name: Build and deploy Gutenberg library
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  BOOK_LANGUAGES: ""
+  MAX_SITE_BYTES: "850000000"
+  MAX_BOOK_BYTES: "26214400"
+  MAX_BOOKS: "0"
+  DOWNLOAD_DELAY: "2"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Generate cache key
+        id: cache-key
+        shell: bash
+        run: echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Gutenberg text cache
+        uses: actions/cache@v4
+        with:
+          path: .book-cache/books
+          key: gutenberg-books-v2-${{ runner.os }}-${{ steps.cache-key.outputs.week }}-${{ hashFiles('scripts/build_library.py') }}
+          restore-keys: |
+            gutenberg-books-v2-${{ runner.os }}-
+
+      - name: Build static library
+        run: |
+          python scripts/build_library.py \
+            --output site \
+            --cache .book-cache \
+            --languages "$BOOK_LANGUAGES" \
+            --max-site-bytes "$MAX_SITE_BYTES" \
+            --max-book-bytes "$MAX_BOOK_BYTES" \
+            --max-books "$MAX_BOOKS" \
+            --delay "$DOWNLOAD_DELAY"
+
+      - name: Show build statistics
+        run: cat site/data/build.json
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+          include-hidden-files: true
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

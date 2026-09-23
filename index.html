@@ -1,274 +1,1022 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Book Reader</title>
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#181e19">
+    <title>BooksMaxxing</title>
+    <link rel="icon" href="assets/favicon.png" type="image/png">
     <style>
-        :root {
-            --bg: #07090d;
-            --panel: #111722;
-            --paper: #151b26;
-            --paper-dark: #0f141d;
-            --text: #e8dfcc;
-            --muted: #9b927f;
-            --accent: #c89452;
-            --accent-dark: #8f6334;
-            --border: #2c3545;
-            --error-bg: #2a1212;
-            --error-border: #7d3434;
-            --error-text: #ffd2c9;
-            --shadow: rgba(0, 0, 0, 0.6);
-            --font-size: 20px;
-        }
+:root {
+    --desktop-font: "Segoe UI", Tahoma, Arial, sans-serif;
+    --desktop-charcoal: #0f1411;
+    --desktop-charcoal-2: #141a16;
+    --desktop-olive: #181e19;
+    --desktop-olive-2: #1d241e;
+    --desktop-olive-3: #262d27;
+    --desktop-cream: #f1d89a;
+    --desktop-brown: #987044;
+    --desktop-orange: #d69a47;
+    --desktop-green: #92b95a;
+    --desktop-text: #d9ded8;
+    --desktop-muted: #8f9990;
+    --desktop-line: #3f463d;
+    --desktop-panel: #1b221c;
+    --desktop-panel-deep: #141a16;
+    --desktop-selection: #4a432d;
+    --desktop-shadow: rgba(0, 0, 0, 0.68);
+    --font-size: 20px;
+}
 
-        * {
-            box-sizing: border-box;
-        }
+* {
+    box-sizing: border-box;
+}
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background:
-                radial-gradient(circle at top, rgba(200, 148, 82, 0.15), transparent 34%),
-                linear-gradient(135deg, #030405, var(--bg));
-            color: var(--text);
-            font-family: Georgia, "Times New Roman", serif;
-        }
+html {
+    color-scheme: dark;
+}
 
-        .app {
-            width: min(1200px, calc(100% - 32px));
-            margin: 0 auto;
-            padding: 24px 0;
-        }
+body {
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background:
+        radial-gradient(circle at 14% 82%, rgba(152, 112, 68, 0.16), transparent 31%),
+        radial-gradient(circle at 72% 18%, rgba(241, 216, 154, 0.045), transparent 30%),
+        linear-gradient(140deg, #1b211c 0, #181e19 42%, #101511 100%);
+    color: var(--desktop-text);
+    font: 16px/1.45 var(--desktop-font);
+}
 
-        .toolbar {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            margin-bottom: 24px;
-            background: rgba(17, 23, 34, 0.94);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            box-shadow: 0 14px 36px var(--shadow);
-        }
+::selection {
+    color: #fff;
+    background: var(--desktop-selection);
+}
 
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
+button,
+input,
+select {
+    font: inherit;
+}
 
-        button,
-        select {
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            background: #0d111a;
-            color: var(--text);
-            font: inherit;
-            padding: 10px 14px;
-        }
+button,
+input,
+select {
+    border-radius: 0;
+}
 
-        button {
-            cursor: pointer;
-            background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-            color: #111111;
-            border-color: transparent;
-            font-weight: 700;
-            transition: transform 0.15s ease, opacity 0.15s ease;
-        }
+button {
+    min-height: 30px;
+    padding: 0 11px;
+    border: 1px solid #151915;
+    background: linear-gradient(#444e43, #303831);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
+    color: #e0e4dd;
+    cursor: pointer;
+}
 
-        button:hover {
-            transform: translateY(-1px);
-        }
+button:hover:not(:disabled),
+button:focus-visible:not(:disabled) {
+    outline: none;
+    border-color: #7b6545;
+    color: var(--desktop-cream);
+}
 
-        button:disabled {
-            cursor: not-allowed;
-            opacity: 0.45;
-            transform: none;
-        }
+button:active:not(:disabled) {
+    background: #2b332d;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
+}
 
-        .book {
-            position: relative;
-            min-height: 72vh;
-            padding: clamp(28px, 5vw, 72px);
-            background:
-                linear-gradient(90deg, rgba(255, 255, 255, 0.025), transparent 8%, transparent 92%, rgba(0, 0, 0, 0.18)),
-                linear-gradient(135deg, var(--paper), var(--paper-dark));
-            border: 1px solid var(--border);
-            border-radius: 22px;
-            box-shadow:
-                0 26px 70px var(--shadow),
-                inset 0 0 80px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
+button:disabled {
+    color: #727a72;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
 
-        .book::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            width: 2px;
-            background: linear-gradient(to bottom, transparent, rgba(255, 230, 180, 0.12), transparent);
-            transform: translateX(-50%);
-            pointer-events: none;
-        }
+button.secondary {
+    background: #262e27;
+    border-color: #151a16;
+    color: #c9d0c6;
+}
 
-        .page {
-            column-count: 2;
-            column-gap: clamp(42px, 8vw, 90px);
-            max-height: 62vh;
-            overflow: hidden;
-            font-size: var(--font-size);
-            line-height: 1.75;
-            text-align: justify;
-            white-space: pre-wrap;
-            color: var(--text);
-            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
-        }
+a {
+    color: #d8aa5e;
+}
 
-        .page.single {
-            column-count: 1;
-            max-width: 760px;
-            margin: 0 auto;
-        }
+a:hover {
+    color: var(--desktop-cream);
+}
 
-        .meta {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            margin-top: 18px;
-            color: var(--muted);
-            font-size: 15px;
-        }
+.shell {
+    min-height: 100vh;
+    padding: clamp(12px, 2vw, 28px);
+}
 
-        .navigation {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 18px;
-        }
+.desktop-window {
+    display: grid;
+    grid-template-rows: 32px auto minmax(0, 1fr) 25px;
+    width: min(1480px, 100%);
+    min-height: calc(100vh - clamp(24px, 4vw, 56px));
+    margin: 0 auto;
+    overflow: hidden;
+    border: 1px solid #090d0a;
+    background: var(--desktop-panel);
+    box-shadow: 0 0 0 1px var(--desktop-line), 0 14px 42px var(--desktop-shadow);
+}
 
-        .progress-wrap {
-            flex: 1 1 260px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--muted);
-        }
+.window-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    padding-left: 7px;
+    border-bottom: 1px solid #0d120e;
+    background: linear-gradient(#2b322b, #1d241e);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
+}
 
-        input[type="range"] {
-            width: 100%;
-            accent-color: var(--accent);
-        }
+.window-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    color: #edf0eb;
+    font-weight: 600;
+}
 
-        .empty {
-            min-height: 54vh;
-            display: grid;
-            place-items: center;
-            text-align: center;
-            color: var(--muted);
-        }
+.window-title img {
+    width: 19px;
+    height: 19px;
+    border: 1px solid #101511;
+    background: #222a24;
+    object-fit: cover;
+}
 
-        .empty strong {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text);
-            font-size: 28px;
-        }
+.window-title strong,
+.window-title span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-        code {
-            color: var(--accent);
-        }
+.window-title span {
+    color: #98a096;
+    font-size: 12px;
+    font-weight: 400;
+}
 
-        .error {
-            display: none;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            border-radius: 14px;
-            background: var(--error-bg);
-            border: 1px solid var(--error-border);
-            color: var(--error-text);
-        }
+.window-controls {
+    align-self: stretch;
+    display: flex;
+}
 
-        @media (max-width: 820px) {
-            .toolbar {
-                justify-content: center;
-            }
+.window-control {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid #151a16;
+    background: linear-gradient(#444c43, #2c332d);
+    color: #dfe3dc;
+    font: 14px/1 var(--desktop-font);
+    cursor: default;
+    user-select: none;
+}
 
-            .page {
-                column-count: 1;
-                max-height: 65vh;
-            }
+.window-control:last-child {
+    color: #e9c7b8;
+}
 
-            .book::before {
-                display: none;
-            }
-        }
-    </style>
+.window-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 44px;
+    padding: 6px 8px;
+    border-bottom: 1px solid #161b17;
+    background: #303831;
+}
+
+.toolbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: max-content;
+    padding: 0 10px 0 3px;
+    border-right: 1px solid #171c18;
+}
+
+.toolbar-brand strong {
+    color: var(--desktop-cream);
+    font-size: 14px;
+}
+
+.toolbar-brand span {
+    color: #9aa39a;
+    font-size: 12px;
+}
+
+.search-form {
+    display: flex;
+    gap: 6px;
+    width: min(700px, 100%);
+    margin-left: auto;
+}
+
+.search-form::before {
+    content: "Search";
+    align-self: center;
+    color: #aeb8aa;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.search-form input {
+    width: 100%;
+    min-width: 0;
+    height: 30px;
+    padding: 0 9px;
+    border: 1px solid #101510;
+    outline: none;
+    background: #171d18;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.65), 0 0 0 1px #465045;
+    color: #e7ebe4;
+}
+
+.search-form input::placeholder {
+    color: #737e74;
+}
+
+.search-form input:focus {
+    border-color: #806a48;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.65), 0 0 0 1px #8e744b;
+}
+
+.window-content {
+    min-width: 0;
+    min-height: 0;
+    padding: 10px;
+    background: linear-gradient(#293129, #242b25);
+}
+
+.error {
+    display: none;
+    margin-bottom: 8px;
+    padding: 8px 11px;
+    border: 1px solid #6b332b;
+    background: #32201d;
+    color: #efc5b8;
+    font-size: 13px;
+}
+
+.catalog-view {
+    display: grid;
+    grid-template-columns: 208px minmax(0, 1fr);
+    min-height: calc(100vh - 171px);
+    border: 1px solid #151915;
+    background: var(--desktop-panel);
+    box-shadow: inset 0 1px #475247;
+}
+
+.catalog-sidebar {
+    min-width: 0;
+    border-right: 1px solid #131713;
+    background: #202721;
+}
+
+.sidebar-brand {
+    display: grid;
+    place-items: center;
+    min-height: 154px;
+    padding: 16px;
+    border-bottom: 1px solid #131713;
+    text-align: center;
+}
+
+.sidebar-brand img {
+    width: 76px;
+    height: 76px;
+    padding: 3px;
+    border: 1px solid #151915;
+    background: #2d352d;
+    box-shadow: inset 0 0 0 1px #495447;
+    object-fit: cover;
+}
+
+.sidebar-brand strong {
+    margin-top: 9px;
+    color: #edf0eb;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.sidebar-brand span {
+    margin-top: 5px;
+    color: var(--desktop-orange);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.sidebar-section {
+    padding: 10px 0;
+    border-bottom: 1px solid #141914;
+}
+
+.sidebar-section h2 {
+    margin: 0;
+    padding: 0 14px 7px;
+    color: #9ca79a;
+    font-size: 11px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.sidebar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 29px;
+    padding: 0 14px;
+    color: #c1c8be;
+    font-size: 13px;
+}
+
+.sidebar-row strong {
+    color: var(--desktop-cream);
+    font-size: 12px;
+}
+
+.sidebar-row.is-active {
+    border-left: 2px solid var(--desktop-orange);
+    background: #333b33;
+    color: var(--desktop-cream);
+}
+
+.sidebar-link {
+    color: #c1c8be;
+    text-decoration: none;
+}
+
+.sidebar-link:hover {
+    background: #333b33;
+    color: var(--desktop-cream);
+}
+
+.catalog-main {
+    min-width: 0;
+    padding: 12px;
+    overflow: hidden;
+    background: linear-gradient(#293129, #242b25);
+}
+
+.catalog-header,
+.reader-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 66px;
+    margin-bottom: 8px;
+    padding: 10px 13px;
+    border: 1px solid #151915;
+    background: #29312a;
+    box-shadow: inset 0 1px #475247;
+}
+
+.catalog-header h1,
+.reader-title h1 {
+    margin: 0;
+    color: #f1f3ef;
+    font-size: clamp(22px, 3vw, 31px);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+}
+
+.catalog-header p,
+.reader-title p {
+    margin: 5px 0 0;
+    color: #aeb8aa;
+    font-size: 13px;
+}
+
+.catalog-count {
+    flex: 0 0 auto;
+    padding: 5px 8px;
+    border: 1px solid #3a433a;
+    background: #202820;
+    color: var(--desktop-cream);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.catalog-grid {
+    display: grid;
+    border: 1px solid #151915;
+    background: #1a211b;
+    box-shadow: inset 0 1px #3e493f;
+}
+
+.book-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    min-width: 0;
+    padding: 11px 12px;
+    border-bottom: 1px solid #171c18;
+    background: #252c26;
+}
+
+.book-card:last-child {
+    border-bottom: 0;
+}
+
+.book-card:hover {
+    background: #2d352e;
+}
+
+.book-card-main {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 11px;
+    min-width: 0;
+}
+
+.book-file-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 44px;
+    border: 1px solid #101510;
+    background: linear-gradient(145deg, #dfc681, #a77946);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 1px 2px 2px rgba(0, 0, 0, 0.35);
+    color: #4b3425;
+    font: 800 18px/1 Georgia, serif;
+}
+
+.book-card-copy {
+    min-width: 0;
+}
+
+.book-card-kicker {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.book-id {
+    color: var(--desktop-orange);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.book-language {
+    padding: 1px 4px;
+    border: 1px solid #465145;
+    background: #202820;
+    color: #aeb8aa;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.book-card h2 {
+    margin: 3px 0 2px;
+    overflow: hidden;
+    color: #e8ebe6;
+    font-size: 16px;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.book-author {
+    overflow: hidden;
+    color: #b9c3b7;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.book-summary {
+    display: -webkit-box;
+    max-width: 900px;
+    margin: 4px 0 0;
+    overflow: hidden;
+    color: #8f9990;
+    font-size: 11px;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+}
+
+.book-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    align-self: center;
+}
+
+.book-card-footer button {
+    min-width: 64px;
+    border-color: #806431;
+    background: #312d21;
+    color: var(--desktop-cream);
+}
+
+.book-card-footer button:hover {
+    border-color: #b58a43;
+    background: #3d3526;
+}
+
+.downloads {
+    color: #899586;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.catalog-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    margin-top: 8px;
+    padding: 6px;
+    border: 1px solid #151915;
+    background: #202721;
+    color: #aeb8aa;
+    font-size: 12px;
+}
+
+.status-panel {
+    min-height: 340px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #151915;
+    background: #202721;
+    color: #8f9990;
+    font-size: 13px;
+}
+
+.reader-view[hidden],
+.catalog-view[hidden] {
+    display: none;
+}
+
+.reader-view {
+    min-height: calc(100vh - 171px);
+}
+
+.reader-toolbar {
+    align-items: flex-start;
+}
+
+.reader-title {
+    flex: 1 1 auto;
+    min-width: 200px;
+}
+
+.reader-controls {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+select {
+    height: 30px;
+    padding: 0 28px 0 8px;
+    border: 1px solid #151915;
+    outline: none;
+    background: #202820;
+    color: #d9ded8;
+}
+
+select:focus {
+    border-color: #806a48;
+}
+
+.book {
+    position: relative;
+    min-height: 68vh;
+    padding: clamp(28px, 4vw, 58px);
+    overflow: hidden;
+    border: 1px solid #151915;
+    background:
+        linear-gradient(90deg, rgba(241, 216, 154, 0.018), transparent 7%, transparent 93%, rgba(0, 0, 0, 0.16)),
+        linear-gradient(#222a24, #171d18);
+    box-shadow: inset 0 1px #465045, inset 0 0 90px rgba(0, 0, 0, 0.23);
+}
+
+.book::before {
+    content: "";
+    position: absolute;
+    top: 26px;
+    bottom: 26px;
+    left: 50%;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, #4b5146 12%, #4b5146 88%, transparent);
+    box-shadow: 1px 0 rgba(0, 0, 0, 0.55);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.page {
+    column-count: 2;
+    column-gap: clamp(48px, 7vw, 90px);
+    max-height: 58vh;
+    overflow: hidden;
+    color: #e0dfd4;
+    font: var(--font-size)/1.72 Georgia, "Times New Roman", serif;
+    text-align: justify;
+    text-shadow: 0 1px rgba(0, 0, 0, 0.45);
+    white-space: pre-wrap;
+}
+
+.page.single {
+    max-width: 820px;
+    margin: 0 auto;
+    column-count: 1;
+}
+
+.meta {
+    position: absolute;
+    right: 12px;
+    bottom: 7px;
+    left: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #778179;
+    font: 11px/1 var(--desktop-font);
+}
+
+.navigation {
+    display: grid;
+    grid-template-columns: auto minmax(220px, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    margin-top: 8px;
+    padding: 7px;
+    border: 1px solid #151915;
+    background: #202721;
+}
+
+.progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #899586;
+    font-size: 11px;
+}
+
+input[type="range"] {
+    width: 100%;
+    accent-color: var(--desktop-orange);
+}
+
+.source-link {
+    margin-top: 8px;
+    padding: 7px 10px;
+    border: 1px solid #151915;
+    background: #1b221c;
+    color: #7f897f;
+    font-size: 11px;
+    text-align: center;
+}
+
+.window-statusbar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-top: 1px solid #0e130f;
+    background: #1b211c;
+    color: #8c958d;
+    font-size: 11px;
+}
+
+.status-segment {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: 100%;
+    padding: 0 9px;
+    border-right: 1px solid #0e130f;
+    box-shadow: inset 1px 0 rgba(255, 255, 255, 0.035);
+    white-space: nowrap;
+}
+
+.status-segment:first-child {
+    color: var(--desktop-green);
+}
+
+.status-spacer {
+    flex: 1 1 auto;
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #111611;
+}
+
+::-webkit-scrollbar-thumb {
+    border: 2px solid #111611;
+    background: #697068;
+}
+
+@media (max-width: 900px) {
+    .shell {
+        padding: 0;
+    }
+
+    .desktop-window {
+        min-height: 100vh;
+        border-right: 0;
+        border-left: 0;
+        box-shadow: none;
+    }
+
+    .window-title span,
+    .toolbar-brand span,
+    .search-form::before {
+        display: none;
+    }
+
+    .catalog-view {
+        grid-template-columns: 1fr;
+    }
+
+    .catalog-sidebar {
+        display: none;
+    }
+
+    .book-card {
+        grid-template-columns: 1fr;
+    }
+
+    .book-card-footer {
+        justify-content: space-between;
+        padding-left: 53px;
+    }
+
+    .reader-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .reader-title {
+        order: -1;
+        flex-basis: 100%;
+    }
+
+    .page {
+        max-height: 62vh;
+        column-count: 1;
+    }
+
+    .book::before {
+        display: none;
+    }
+}
+
+@media (max-width: 620px) {
+    .window-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .toolbar-brand {
+        min-height: 26px;
+        border-right: 0;
+        border-bottom: 1px solid #171c18;
+    }
+
+    .search-form {
+        width: 100%;
+    }
+
+    .window-content,
+    .catalog-main {
+        padding: 6px;
+    }
+
+    .catalog-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .catalog-count {
+        align-self: stretch;
+        text-align: center;
+    }
+
+    .book-card-main {
+        grid-template-columns: 34px minmax(0, 1fr);
+    }
+
+    .book-file-icon {
+        width: 32px;
+        height: 38px;
+        font-size: 15px;
+    }
+
+    .book-card-footer {
+        padding-left: 45px;
+    }
+
+    .downloads {
+        display: none;
+    }
+
+    .reader-controls {
+        width: 100%;
+    }
+
+    .reader-controls select {
+        flex: 1 1 140px;
+    }
+
+    .book {
+        min-height: 70vh;
+        padding: 24px 18px 34px;
+    }
+
+    .navigation {
+        grid-template-columns: auto auto;
+    }
+
+    .progress-wrap {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+
+    .window-statusbar .status-segment:nth-of-type(2),
+    .window-statusbar .status-segment:nth-of-type(3) {
+        display: none;
+    }
+}
+</style>
 </head>
-
 <body>
-    <main class="app">
-        <section class="toolbar">
-            <div class="controls">
-                <select id="layoutSelect">
-                    <option value="double">Two Pages</option>
-                    <option value="single">Single Page</option>
-                </select>
-
-                <select id="fontSelect">
-                    <option value="18">Small</option>
-                    <option value="20" selected>Medium</option>
-                    <option value="23">Large</option>
-                    <option value="26">Extra Large</option>
-                </select>
-            </div>
-        </section>
-
-        <div id="error" class="error"></div>
-
-        <article class="book">
-            <div id="page" class="page">
-                <div class="empty">
-                    <div>
-                        <strong>Loading book...</strong>
-                        Use <code>?book=frankenstein.txt</code> in the URL.
-                    </div>
+    <main class="shell">
+        <section class="desktop-window" aria-label="BooksMaxxing reader">
+            <header class="window-titlebar">
+                <div class="window-title">
+                    <img src="assets/logo.png" alt="">
+                    <strong>BooksMaxxing</strong>
+                    <span>Project Gutenberg Archive</span>
                 </div>
+                <div class="window-controls" aria-hidden="true">
+                    <span class="window-control">—</span>
+                    <span class="window-control">□</span>
+                    <span class="window-control">×</span>
+                </div>
+            </header>
+
+            <div class="window-toolbar">
+                <div class="toolbar-brand">
+                    <strong>Library</strong>
+                    <span>Static Gutenberg reader</span>
+                </div>
+                <form id="searchForm" class="search-form">
+                    <input id="searchInput" type="search" placeholder="Title, author, language or Gutenberg ID" autocomplete="off">
+                    <button type="submit">Find</button>
+                </form>
             </div>
 
-            <div class="meta">
-                <span id="bookName">Loading</span>
-                <span id="pageInfo">Page 0 / 0</span>
+            <div class="window-content">
+                <div id="error" class="error"></div>
+
+                <section id="catalogView" class="catalog-view">
+                    <aside class="catalog-sidebar">
+                        <div class="sidebar-brand">
+                            <img src="assets/logo.png" alt="">
+                            <strong>BooksMaxxing</strong>
+                            <span>Public domain archive</span>
+                        </div>
+                        <section class="sidebar-section">
+                            <h2>Library</h2>
+                            <div class="sidebar-row is-active"><span>All books</span><strong>Local</strong></div>
+                            <div class="sidebar-row"><span>Reading state</span><strong>Saved</strong></div>
+                        </section>
+                        <section class="sidebar-section">
+                            <h2>Source</h2>
+                            <a class="sidebar-row sidebar-link" href="https://www.gutenberg.org" target="_blank" rel="noopener noreferrer"><span>Project Gutenberg</span><strong>↗</strong></a>
+                            <div class="sidebar-row"><span>Delivery</span><strong>GitHub Pages</strong></div>
+                        </section>
+                        <section class="sidebar-section">
+                            <h2>Build</h2>
+                            <div class="sidebar-row"><span>Books</span><strong id="statusBookCount">Loading…</strong></div>
+                            <div class="sidebar-row"><span>Catalog</span><strong id="statusBuildDate">Static build</strong></div>
+                        </section>
+                    </aside>
+
+                    <div class="catalog-main">
+                        <div class="catalog-header">
+                            <div>
+                                <h1 id="catalogTitle">Popular books</h1>
+                                <p id="catalogSubtitle">Search books prepared during the latest GitHub Pages build.</p>
+                            </div>
+                            <span id="catalogCount" class="catalog-count"></span>
+                        </div>
+
+                        <div id="catalogGrid" class="catalog-grid"></div>
+                        <div id="catalogStatus" class="status-panel">Loading books…</div>
+
+                        <div class="catalog-footer">
+                            <button id="previousCatalogButton" class="secondary" disabled>Previous</button>
+                            <span id="catalogPageInfo">Page 1</span>
+                            <button id="nextCatalogButton" class="secondary" disabled>Next</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="readerView" class="reader-view" hidden>
+                    <div class="reader-toolbar">
+                        <button id="libraryButton" class="secondary">← Library</button>
+                        <div class="reader-title">
+                            <h1 id="readerTitle">Loading…</h1>
+                            <p id="readerAuthor"></p>
+                        </div>
+                        <div class="reader-controls">
+                            <select id="layoutSelect" aria-label="Page layout">
+                                <option value="double">Two Pages</option>
+                                <option value="single">Single Page</option>
+                            </select>
+                            <select id="fontSelect" aria-label="Font size">
+                                <option value="18">Small</option>
+                                <option value="20" selected>Medium</option>
+                                <option value="23">Large</option>
+                                <option value="26">Extra Large</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <article class="book">
+                        <div id="page" class="page">Loading book…</div>
+                        <div class="meta">
+                            <span id="bookName">Loading</span>
+                            <span id="pageInfo">Page 0 / 0</span>
+                        </div>
+                    </article>
+
+                    <nav class="navigation" aria-label="Book navigation">
+                        <button id="previousButton" disabled>Previous</button>
+                        <div class="progress-wrap">
+                            <span>Start</span>
+                            <input id="progressInput" type="range" min="0" max="0" value="0" disabled>
+                            <span>End</span>
+                        </div>
+                        <button id="nextButton" disabled>Next</button>
+                    </nav>
+
+                    <div class="source-link">
+                        Source: <a id="gutenbergLink" href="https://www.gutenberg.org" target="_blank" rel="noopener noreferrer">Project Gutenberg</a>
+                    </div>
+                </section>
             </div>
-        </article>
 
-        <nav class="navigation">
-            <button id="previousButton" disabled>Previous</button>
-
-            <div class="progress-wrap">
-                <span>Start</span>
-                <input id="progressInput" type="range" min="0" max="0" value="0" disabled>
-                <span>End</span>
-            </div>
-
-            <button id="nextButton" disabled>Next</button>
-        </nav>
+            <footer class="window-statusbar">
+                <span class="status-segment">● Online</span>
+                <span class="status-segment">Static archive</span>
+                <span class="status-segment">GitHub Pages</span>
+                <span class="status-spacer"></span>
+                <span class="status-segment">Project Gutenberg</span>
+            </footer>
+        </section>
     </main>
 
     <script>
+const PAGE_SIZE = 24;
+        const catalogView = document.getElementById("catalogView");
+        const readerView = document.getElementById("readerView");
+        const searchForm = document.getElementById("searchForm");
+        const searchInput = document.getElementById("searchInput");
+        const catalogGrid = document.getElementById("catalogGrid");
+        const catalogStatus = document.getElementById("catalogStatus");
+        const catalogTitle = document.getElementById("catalogTitle");
+        const catalogSubtitle = document.getElementById("catalogSubtitle");
+        const catalogCount = document.getElementById("catalogCount");
+        const catalogPageInfo = document.getElementById("catalogPageInfo");
+        const previousCatalogButton = document.getElementById("previousCatalogButton");
+        const nextCatalogButton = document.getElementById("nextCatalogButton");
+        const libraryButton = document.getElementById("libraryButton");
+        const readerTitle = document.getElementById("readerTitle");
+        const readerAuthor = document.getElementById("readerAuthor");
+        const gutenbergLink = document.getElementById("gutenbergLink");
         const page = document.getElementById("page");
         const previousButton = document.getElementById("previousButton");
         const nextButton = document.getElementById("nextButton");
@@ -279,21 +1027,18 @@
         const layoutSelect = document.getElementById("layoutSelect");
         const fontSelect = document.getElementById("fontSelect");
 
+        let allBooks = [];
+        let filteredBooks = [];
+        let booksById = new Map();
+        let catalogGeneratedAt = "";
         let bookText = "";
         let pages = [];
         let currentPage = 0;
-        let currentBook = "";
-
-        function getBookFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            const filename = params.get("book");
-
-            if (!filename || !filename.toLowerCase().endsWith(".txt")) {
-                return "";
-            }
-
-            return filename.split(/[\\/]/).pop();
-        }
+        let currentBookId = 0;
+        let currentBookTitle = "";
+        let catalogPage = 1;
+        let catalogQuery = "";
+        let readerController = null;
 
         function showError(message) {
             errorBox.textContent = message;
@@ -305,16 +1050,205 @@
             errorBox.style.display = "none";
         }
 
-        function cleanText(text) {
-            return text
-                .replace(/\r\n/g, "\n")
-                .replace(/\n{4,}/g, "\n\n\n")
-                .replace(/[ \t]+$/gm, "")
-                .trim();
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function formatAuthors(authors) {
+            if (!Array.isArray(authors) || !authors.length) {
+                return "Unknown author";
+            }
+
+            return authors.map(author => author.name || "Unknown author").join(", ");
+        }
+
+        function formatNumber(value) {
+            return new Intl.NumberFormat().format(Number(value) || 0);
+        }
+
+        function formatBuildDate(value) {
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return "";
+            }
+            return new Intl.DateTimeFormat(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            }).format(date);
+        }
+
+        async function fetchJson(url, options = {}) {
+            const response = await fetch(url, options);
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}.`);
+            }
+
+            return payload;
+        }
+
+        async function fetchGzipText(url, options = {}) {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`Book download failed with status ${response.status}.`);
+            }
+
+            const bytes = new Uint8Array(await response.arrayBuffer());
+            const isGzip = bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b;
+
+            if (!isGzip) {
+                return new TextDecoder("utf-8").decode(bytes);
+            }
+
+            if (!("DecompressionStream" in window)) {
+                throw new Error("This browser does not support gzip decompression required by this static reader.");
+            }
+
+            const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+            return new Response(stream).text();
+        }
+
+        function normalizeSearch(value) {
+            return String(value || "").normalize("NFKD").toLocaleLowerCase();
+        }
+
+        function filterCatalog(query) {
+            const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
+            if (!terms.length) {
+                return allBooks;
+            }
+
+            return allBooks.filter(book => {
+                const haystack = normalizeSearch([
+                    book.id,
+                    book.title,
+                    formatAuthors(book.authors),
+                    ...(Array.isArray(book.languages) ? book.languages : [])
+                ].join(" "));
+                return terms.every(term => haystack.includes(term));
+            });
+        }
+
+        function renderCatalogBooks(books) {
+            if (!books.length) {
+                catalogGrid.innerHTML = "";
+                catalogStatus.hidden = false;
+                catalogStatus.textContent = "No books matched your search.";
+                return;
+            }
+
+            catalogStatus.hidden = true;
+            catalogGrid.innerHTML = books.map(book => {
+                const summary = book.summary || "Open this public-domain book in the reader.";
+                const language = Array.isArray(book.languages) && book.languages.length
+                    ? book.languages.join(", ").toUpperCase()
+                    : "—";
+                return `
+                    <article class="book-card">
+                        <div class="book-card-main">
+                            <div class="book-file-icon" aria-hidden="true">B</div>
+                            <div class="book-card-copy">
+                                <div class="book-card-kicker">
+                                    <span class="book-id">Gutenberg #${book.id}</span>
+                                    <span class="book-language">${escapeHtml(language)}</span>
+                                </div>
+                                <h2>${escapeHtml(book.title)}</h2>
+                                <div class="book-author">${escapeHtml(formatAuthors(book.authors))}</div>
+                                <p class="book-summary">${escapeHtml(summary)}</p>
+                            </div>
+                        </div>
+                        <div class="book-card-footer">
+                            <span class="downloads">${formatNumber(book.download_count)} downloads</span>
+                            <button type="button" data-book-id="${book.id}">Read</button>
+                        </div>
+                    </article>
+                `;
+            }).join("");
+        }
+
+        function loadCatalog(query = catalogQuery, pageNumber = 1, updateUrl = true) {
+            clearError();
+            catalogQuery = query.trim();
+            filteredBooks = filterCatalog(catalogQuery);
+            const pageCount = Math.max(1, Math.ceil(filteredBooks.length / PAGE_SIZE));
+            catalogPage = Math.min(pageCount, Math.max(1, Number(pageNumber) || 1));
+            searchInput.value = catalogQuery;
+
+            const start = (catalogPage - 1) * PAGE_SIZE;
+            renderCatalogBooks(filteredBooks.slice(start, start + PAGE_SIZE));
+
+            previousCatalogButton.disabled = catalogPage <= 1;
+            nextCatalogButton.disabled = catalogPage >= pageCount;
+            catalogPageInfo.textContent = `Page ${catalogPage} / ${pageCount}`;
+            catalogTitle.textContent = catalogQuery ? `Results for “${catalogQuery}”` : "Popular books";
+            catalogCount.textContent = catalogQuery
+                ? `${formatNumber(filteredBooks.length)} of ${formatNumber(allBooks.length)} books`
+                : `${formatNumber(allBooks.length)} books`;
+
+            const buildDate = formatBuildDate(catalogGeneratedAt);
+            catalogSubtitle.textContent = buildDate
+                ? `Static Gutenberg library generated ${buildDate}. Search works entirely on GitHub Pages.`
+                : "Static Gutenberg library generated during the latest GitHub Pages build.";
+
+            const statusBookCount = document.getElementById("statusBookCount");
+            const statusBuildDate = document.getElementById("statusBuildDate");
+            if (statusBookCount) {
+                statusBookCount.textContent = `${formatNumber(allBooks.length)} books cached`;
+            }
+            if (statusBuildDate) {
+                statusBuildDate.textContent = buildDate ? `Build ${buildDate}` : "Static build";
+            }
+
+            if (updateUrl) {
+                const url = new URL(window.location.href);
+                url.search = "";
+
+                if (catalogQuery) {
+                    url.searchParams.set("q", catalogQuery);
+                }
+
+                if (catalogPage > 1) {
+                    url.searchParams.set("page", String(catalogPage));
+                }
+
+                history.pushState({ view: "catalog" }, "", url);
+            }
+        }
+
+        function cleanBookText(text) {
+            let cleaned = String(text || "")
+                .replace(/\r\n?/g, "\n")
+                .replace(/[ \t]+$/gm, "");
+
+            const startPatterns = [
+                /\*\*\* START OF THE PROJECT GUTENBERG EBOOK[^\n]*\*\*\s*/i,
+                /\*\*\*START OF THE PROJECT GUTENBERG EBOOK[^\n]*\*\*\s*/i
+            ];
+            const endPatterns = [
+                /\s*\*\* END OF THE PROJECT GUTENBERG EBOOK[\s\S]*$/i,
+                /\s*\*\*END OF THE PROJECT GUTENBERG EBOOK[\s\S]*$/i
+            ];
+
+            for (const pattern of startPatterns) {
+                cleaned = cleaned.replace(pattern, "");
+            }
+
+            for (const pattern of endPatterns) {
+                cleaned = cleaned.replace(pattern, "");
+            }
+
+            return cleaned.replace(/\n{4,}/g, "\n\n\n").trim();
         }
 
         function getStateKey() {
-            return `darkBookReader:${currentBook}`;
+            return `booksMaxxing:${currentBookId}`;
         }
 
         function estimateCharactersPerPage() {
@@ -358,7 +1292,7 @@
         }
 
         function saveState() {
-            if (!currentBook || !pages.length) {
+            if (!currentBookId || !pages.length) {
                 return;
             }
 
@@ -370,113 +1304,187 @@
         }
 
         function loadState() {
-            if (!currentBook) {
-                return;
-            }
+            currentPage = 0;
+            layoutSelect.value = "double";
+            fontSelect.value = "20";
 
             const rawState = localStorage.getItem(getStateKey());
 
-            if (!rawState) {
-                return;
+            if (rawState) {
+                try {
+                    const state = JSON.parse(rawState);
+                    layoutSelect.value = state.layout || "double";
+                    fontSelect.value = state.fontSize || "20";
+                    currentPage = Number(state.currentPage) || 0;
+                } catch {
+                    localStorage.removeItem(getStateKey());
+                }
             }
 
-            try {
-                const state = JSON.parse(rawState);
-
-                layoutSelect.value = state.layout || "double";
-                fontSelect.value = state.fontSize || "20";
-                document.documentElement.style.setProperty("--font-size", `${fontSelect.value}px`);
-                currentPage = Number(state.currentPage) || 0;
-            } catch {
-                localStorage.removeItem(getStateKey());
-            }
+            document.documentElement.style.setProperty("--font-size", `${fontSelect.value}px`);
         }
 
         function renderPage() {
             if (!pages.length) {
-                page.innerHTML = `
-					<div class="empty">
-						<div>
-							<strong>No book loaded</strong>
-							Open <code>index.html?book=frankenstein.txt</code>.
-						</div>
-					</div>
-				`;
-
+                page.textContent = "This book has no readable text.";
                 pageInfo.textContent = "Page 0 / 0";
                 previousButton.disabled = true;
                 nextButton.disabled = true;
                 progressInput.disabled = true;
-                progressInput.max = "0";
-                progressInput.value = "0";
                 return;
             }
 
+            currentPage = Math.min(Math.max(currentPage, 0), pages.length - 1);
             page.textContent = pages[currentPage];
             page.classList.toggle("single", layoutSelect.value === "single");
-
             pageInfo.textContent = `Page ${currentPage + 1} / ${pages.length}`;
             previousButton.disabled = currentPage === 0;
             nextButton.disabled = currentPage >= pages.length - 1;
-
             progressInput.disabled = false;
             progressInput.max = String(pages.length - 1);
             progressInput.value = String(currentPage);
-
             saveState();
-        }
-
-        async function loadBook() {
-            clearError();
-
-            currentBook = getBookFromUrl();
-
-            if (!currentBook) {
-                showError("No book selected. Use a URL like index.html?book=frankenstein.txt");
-                renderPage();
-                return;
-            }
-
-            try {
-                const response = await fetch(`books/${encodeURIComponent(currentBook)}`);
-
-                if (!response.ok) {
-                    throw new Error("Book not found.");
-                }
-
-                const text = await response.text();
-
-                bookText = cleanText(text);
-                bookName.textContent = currentBook.replace(/\.txt$/i, "").replace(/[-_]/g, " ");
-
-                loadState();
-
-                pages = splitIntoPages(bookText);
-                currentPage = Math.min(Math.max(currentPage, 0), pages.length - 1);
-
-                renderPage();
-            } catch {
-                showError(`Could not load books/${currentBook}. Check that the file exists and that you opened this page through http://localhost:8000/`);
-                renderPage();
-            }
         }
 
         function rebuildPages() {
             if (!bookText) {
-                renderPage();
                 return;
             }
 
             const progress = pages.length > 1 ? currentPage / (pages.length - 1) : 0;
-
             pages = splitIntoPages(bookText);
             currentPage = Math.min(
                 pages.length - 1,
-                Math.max(0, Math.round(progress * (pages.length - 1)))
+                Math.max(0, Math.round(progress * Math.max(0, pages.length - 1)))
             );
-
             renderPage();
         }
+
+        async function openBook(bookId, updateUrl = true) {
+            const id = Number(bookId);
+            const book = booksById.get(id);
+
+            if (!Number.isInteger(id) || id <= 0) {
+                showError("Invalid book ID.");
+                return;
+            }
+
+            if (!book) {
+                showLibrary(false);
+                showError(`Gutenberg #${id} is not included in this static build yet.`);
+                return;
+            }
+
+            clearError();
+
+            if (readerController) {
+                readerController.abort();
+            }
+
+            readerController = new AbortController();
+            currentBookId = id;
+            currentBookTitle = book.title || `Book ${id}`;
+            bookText = "";
+            pages = [];
+            currentPage = 0;
+
+            catalogView.hidden = true;
+            readerView.hidden = false;
+            readerTitle.textContent = currentBookTitle;
+            readerAuthor.textContent = formatAuthors(book.authors);
+            bookName.textContent = `Gutenberg #${id}`;
+            page.textContent = "Loading book…";
+            pageInfo.textContent = "Page 0 / 0";
+            previousButton.disabled = true;
+            nextButton.disabled = true;
+            progressInput.disabled = true;
+            gutenbergLink.href = `https://www.gutenberg.org/ebooks/${id}`;
+            window.scrollTo({ top: 0, behavior: "instant" });
+
+            if (updateUrl) {
+                const url = new URL(window.location.href);
+                url.search = "";
+                url.searchParams.set("book", String(id));
+                history.pushState({ view: "reader", book: id }, "", url);
+            }
+
+            try {
+                const authors = formatAuthors(book.authors);
+                const text = await fetchGzipText(new URL(book.file, document.baseURI), {
+                    signal: readerController.signal
+                });
+
+                readerTitle.textContent = currentBookTitle;
+                readerAuthor.textContent = authors;
+                bookName.textContent = `${currentBookTitle} — ${authors}`;
+                bookText = cleanBookText(text);
+                loadState();
+                pages = splitIntoPages(bookText);
+                currentPage = Math.min(Math.max(currentPage, 0), Math.max(0, pages.length - 1));
+                renderPage();
+            } catch (error) {
+                if (error.name === "AbortError") {
+                    return;
+                }
+
+                page.textContent = "Could not open this book.";
+                showError(error.message);
+            }
+        }
+
+        function showLibrary(updateUrl = true) {
+            if (readerController) {
+                readerController.abort();
+            }
+
+            saveState();
+            readerView.hidden = true;
+            catalogView.hidden = false;
+            clearError();
+
+            if (updateUrl) {
+                const url = new URL(window.location.href);
+                url.search = "";
+
+                if (catalogQuery) {
+                    url.searchParams.set("q", catalogQuery);
+                }
+
+                if (catalogPage > 1) {
+                    url.searchParams.set("page", String(catalogPage));
+                }
+
+                history.pushState({ view: "catalog" }, "", url);
+            }
+        }
+
+        searchForm.addEventListener("submit", event => {
+            event.preventDefault();
+            showLibrary(false);
+            loadCatalog(searchInput.value, 1, true);
+        });
+
+        catalogGrid.addEventListener("click", event => {
+            const button = event.target.closest("button[data-book-id]");
+            if (button) {
+                openBook(button.dataset.bookId, true);
+            }
+        });
+
+        previousCatalogButton.addEventListener("click", () => {
+            if (catalogPage > 1) {
+                loadCatalog(catalogQuery, catalogPage - 1, true);
+            }
+        });
+
+        nextCatalogButton.addEventListener("click", () => {
+            const pageCount = Math.max(1, Math.ceil(filteredBooks.length / PAGE_SIZE));
+            if (catalogPage < pageCount) {
+                loadCatalog(catalogQuery, catalogPage + 1, true);
+            }
+        });
+
+        libraryButton.addEventListener("click", () => showLibrary(true));
 
         previousButton.addEventListener("click", () => {
             if (currentPage > 0) {
@@ -505,18 +1513,59 @@
         });
 
         document.addEventListener("keydown", event => {
-            if (event.key === "ArrowLeft") {
-                previousButton.click();
+            if (readerView.hidden || ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
+                return;
             }
 
-            if (event.key === "ArrowRight") {
+            if (event.key === "ArrowLeft") {
+                previousButton.click();
+            } else if (event.key === "ArrowRight") {
                 nextButton.click();
             }
         });
 
-        document.documentElement.style.setProperty("--font-size", `${fontSelect.value}px`);
-        loadBook();
+        window.addEventListener("popstate", () => {
+            const params = new URLSearchParams(window.location.search);
+            const bookId = Number(params.get("book"));
+
+            if (bookId > 0) {
+                openBook(bookId, false);
+                return;
+            }
+
+            showLibrary(false);
+            loadCatalog(params.get("q") || "", Number(params.get("page")) || 1, false);
+        });
+
+        async function initialize() {
+            document.documentElement.style.setProperty("--font-size", `${fontSelect.value}px`);
+            catalogStatus.hidden = false;
+            catalogStatus.textContent = "Loading static library…";
+
+            try {
+                const data = await fetchJson(new URL("data/catalog.json", document.baseURI));
+                allBooks = Array.isArray(data.books) ? data.books : [];
+                filteredBooks = allBooks;
+                booksById = new Map(allBooks.map(book => [Number(book.id), book]));
+                catalogGeneratedAt = data.generated_at || "";
+            } catch (error) {
+                catalogStatus.textContent = "Could not load the static catalog.";
+                showError(`${error.message} Run the GitHub Pages workflow or scripts/build_library.py first.`);
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const bookId = Number(params.get("book"));
+
+            if (bookId > 0) {
+                await openBook(bookId, false);
+                return;
+            }
+
+            loadCatalog(params.get("q") || "", Number(params.get("page")) || 1, false);
+        }
+
+        initialize();
     </script>
 </body>
-
 </html>
