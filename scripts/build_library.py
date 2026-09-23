@@ -18,7 +18,7 @@ from io import BytesIO
 from pathlib import Path
 
 GUTENDEX_BASE = "https://gutendex.com/books"
-DEFAULT_MIRRORS = "https://aleph.gutenberg.org,https://mirrors.xmission.com/gutenberg"
+DEFAULT_MIRRORS = "https://gutenberg.pglaf.org,https://mirror.cs.odu.edu/gutenberg"
 DEFAULT_MAX_SITE_BYTES = 850_000_000
 DEFAULT_MAX_BOOK_BYTES = 25 * 1024 * 1024
 DEFAULT_DELAY = 0.25

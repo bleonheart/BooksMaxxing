@@ -23,7 +23,7 @@ env:
   MAX_BOOK_BYTES: "26214400"
   MAX_BOOKS: "0"
   DOWNLOAD_DELAY: "0.25"
-  GUTENBERG_MIRRORS: "https://aleph.gutenberg.org,https://mirrors.xmission.com/gutenberg"
+  GUTENBERG_MIRRORS: "https://gutenberg.pglaf.org,https://mirror.cs.odu.edu/gutenberg"
 
 jobs:
   build:
