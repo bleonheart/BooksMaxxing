@@ -5,6 +5,7 @@ import gzip
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import time
@@ -186,6 +187,47 @@ def decode_text(data: bytes) -> str:
     return data.decode("utf-8", errors="replace")
 
 
+GUTENBERG_START_RE = re.compile(
+    r"^\s*\*{0,3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG(?:'S)? (?:EBOOK|ETEXT)\b.*$",
+    re.IGNORECASE,
+)
+GUTENBERG_END_RE = re.compile(
+    r"^\s*\*{0,3}\s*END OF (?:(?:THE|THIS) )?PROJECT GUTENBERG(?:'S)? (?:EBOOK|ETEXT)\b.*$",
+    re.IGNORECASE,
+)
+
+
+def strip_gutenberg_boilerplate(text: str) -> str:
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    start_index = None
+    end_index = None
+
+    for index, line in enumerate(lines):
+        if GUTENBERG_START_RE.match(line):
+            start_index = index + 1
+            break
+
+    search_from = start_index or 0
+    for index in range(search_from, len(lines)):
+        if GUTENBERG_END_RE.match(lines[index]):
+            end_index = index
+            break
+
+    if start_index is None and end_index is None:
+        return text.strip() + "\n"
+
+    body = lines[start_index or 0:end_index]
+    while body and not body[0].strip():
+        body.pop(0)
+    while body and not body[-1].strip():
+        body.pop()
+
+    cleaned = "\n".join(body).strip()
+    if not cleaned:
+        raise ValueError("book text is empty after removing Project Gutenberg boilerplate")
+    return cleaned + "\n"
+
+
 def extract_archive(data: bytes, max_book_bytes: int) -> str:
     with zipfile.ZipFile(BytesIO(data)) as archive:
         candidates = [
@@ -202,7 +244,7 @@ def extract_archive(data: bytes, max_book_bytes: int) -> str:
             raw = handle.read(max_book_bytes + 1)
         if len(raw) > max_book_bytes:
             raise ValueError("book is too large")
-    return decode_text(raw)
+    return strip_gutenberg_boilerplate(decode_text(raw))
 
 
 def gzip_text(text: str) -> bytes:
@@ -258,7 +300,16 @@ def download_book(
 ) -> Path | None:
     cached = cache_books / f"{book_id}.txt.gz"
     if cached.exists() and cached.stat().st_size > 0:
-        return cached
+        try:
+            cached_bytes = cached.read_bytes()
+            cached_text = gzip.decompress(cached_bytes).decode("utf-8")
+            cleaned_text = strip_gutenberg_boilerplate(cached_text)
+            cleaned_bytes = gzip_text(cleaned_text)
+            if cleaned_bytes != cached_bytes:
+                cached.write_bytes(cleaned_bytes)
+            return cached
+        except (OSError, UnicodeDecodeError, ValueError, gzip.BadGzipFile):
+            cached.unlink(missing_ok=True)
 
     candidates = book_candidates(book_id, metadata, mirrors)
     last_error: Exception | None = None
@@ -266,7 +317,7 @@ def download_book(
     for url in candidates:
         try:
             data = request_bytes(url, "text/plain,*/*;q=0.5", 90, max_book_bytes, 1)
-            text = decode_text(data)
+            text = strip_gutenberg_boilerplate(decode_text(data))
             if not text.strip():
                 raise ValueError("book text is empty")
 
@@ -351,18 +402,14 @@ def main() -> int:
             except (KeyError, TypeError, ValueError):
                 continue
 
-            cached = cache_books / f"{book_id}.txt.gz"
-            if cached.exists() and cached.stat().st_size > 0:
-                book_path = cached
-            else:
-                book_path = download_book(
-                    book_id,
-                    metadata,
-                    cache_books,
-                    args.max_book_bytes,
-                    args.delay,
-                    mirrors,
-                )
+            book_path = download_book(
+                book_id,
+                metadata,
+                cache_books,
+                args.max_book_bytes,
+                args.delay,
+                mirrors,
+            )
 
             if book_path is None:
                 failures += 1
