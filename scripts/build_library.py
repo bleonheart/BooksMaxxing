@@ -253,6 +253,10 @@ def prepare_output(root: Path, output: Path) -> None:
         shutil.rmtree(output)
     output.mkdir(parents=True)
     shutil.copy2(root / "index.html", output / "index.html")
+    for static_file in ("sw.js", "manifest.webmanifest"):
+        source = root / static_file
+        if source.exists():
+            shutil.copy2(source, output / static_file)
     assets = root / "assets"
     if assets.exists():
         shutil.copytree(assets, output / "assets")

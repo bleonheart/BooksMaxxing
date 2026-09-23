@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#181e19">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>BooksMaxxing</title>
     <link rel="icon" href="assets/favicon.png" type="image/png">
+    <link rel="manifest" href="manifest.webmanifest">
     <style>
 :root {
     --desktop-font: "Segoe UI", Tahoma, Arial, sans-serif;
@@ -1299,6 +1302,209 @@ input[type="range"] {
         width: 56px;
     }
 }
+
+
+.sidebar-filter,
+.catalog-tab {
+    width: 100%;
+    min-height: 29px;
+    padding: 0 14px;
+    border: 0;
+    border-left: 2px solid transparent;
+    background: transparent;
+    box-shadow: none;
+    color: #c1c8be;
+    text-align: left;
+}
+
+.sidebar-filter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.sidebar-filter strong {
+    color: var(--desktop-cream);
+    font-size: 12px;
+}
+
+.sidebar-filter:hover,
+.sidebar-filter.is-active {
+    border-left-color: var(--desktop-orange);
+    background: #333b33;
+    color: var(--desktop-cream);
+}
+
+.catalog-tabs {
+    display: none;
+    gap: 1px;
+    margin-bottom: 8px;
+    border: 1px solid #151915;
+    background: #151915;
+}
+
+.catalog-tab {
+    min-height: 38px;
+    border: 0;
+    background: #202721;
+    text-align: center;
+}
+
+.catalog-tab.is-active {
+    background: #3a4034;
+    color: var(--desktop-cream);
+    box-shadow: inset 0 -2px var(--desktop-orange);
+}
+
+.book-card-statuses {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.local-badge,
+.progress-badge {
+    padding: 2px 5px;
+    border: 1px solid #4b5549;
+    background: #1f2820;
+    color: #a8b5a4;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.local-badge {
+    border-color: #587345;
+    color: #a7cc73;
+}
+
+.progress-badge {
+    border-color: #7f6540;
+    color: #e0b56a;
+}
+
+.reader-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: -1px 0 8px;
+    padding: 7px;
+    border: 1px solid #151915;
+    background: #202721;
+}
+
+.reader-actions .action-spacer {
+    flex: 1 1 auto;
+}
+
+.reader-actions button {
+    min-height: 32px;
+}
+
+#offlineButton.is-saved {
+    border-color: #5d7749;
+    color: #b5d685;
+}
+
+#shareSelectionButton:disabled {
+    opacity: 0.5;
+}
+
+.page mark {
+    padding: 0 0.08em;
+    background: #806a35;
+    color: #fff3cc;
+    box-shadow: 0 0 0 1px rgba(241, 216, 154, 0.16);
+}
+
+.toast {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 200;
+    max-width: min(420px, calc(100vw - 36px));
+    padding: 10px 13px;
+    border: 1px solid #795f37;
+    background: #242a22;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    color: var(--desktop-cream);
+    font-size: 12px;
+}
+
+.toast[hidden] {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    .catalog-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        position: sticky;
+        top: 104px;
+        z-index: 40;
+        margin: 0 -10px 10px;
+        border-width: 0 0 1px;
+    }
+
+    .catalog-tab {
+        min-height: 44px;
+        padding: 0 8px;
+        font-size: 12px;
+    }
+
+    .book-card-statuses {
+        margin-top: 5px;
+    }
+
+    .reader-actions {
+        position: sticky;
+        top: 68px;
+        z-index: 61;
+        gap: 4px;
+        margin: 0;
+        padding: 5px 7px;
+        overflow-x: auto;
+        border-width: 0 0 1px;
+        background: rgba(27, 34, 28, 0.98);
+        scrollbar-width: none;
+    }
+
+    .reader-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .reader-actions .action-spacer {
+        display: none;
+    }
+
+    .reader-actions button {
+        flex: 0 0 auto;
+        min-height: 38px;
+        padding: 0 10px;
+        font-size: 12px;
+    }
+
+    .book {
+        height: calc(100svh - 194px - env(safe-area-inset-bottom));
+    }
+
+    .page,
+    .page.single {
+        max-height: calc(100svh - 260px - env(safe-area-inset-bottom));
+    }
+
+    .toast {
+        right: 10px;
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        left: 10px;
+        max-width: none;
+        text-align: center;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -1339,9 +1545,10 @@ input[type="range"] {
                             <span>Public domain archive</span>
                         </div>
                         <section class="sidebar-section">
-                            <h2>Library</h2>
-                            <div class="sidebar-row is-active"><span>All books</span><strong>Local</strong></div>
-                            <div class="sidebar-row"><span>Reading state</span><strong>Saved</strong></div>
+                            <h2>Library Index</h2>
+                            <button class="sidebar-filter is-active" type="button" data-library-view="all"><span>All books</span><strong id="allBooksCount">—</strong></button>
+                            <button class="sidebar-filter" type="button" data-library-view="saved"><span>Saved locally</span><strong id="savedBooksCount">0</strong></button>
+                            <button class="sidebar-filter" type="button" data-library-view="reading"><span>Continue reading</span><strong id="readingBooksCount">0</strong></button>
                         </section>
                         <section class="sidebar-section">
                             <h2>Source</h2>
@@ -1358,10 +1565,16 @@ input[type="range"] {
                     <div class="catalog-main">
                         <div class="catalog-header">
                             <div>
-                                <h1 id="catalogTitle">Popular books</h1>
-                                <p id="catalogSubtitle">Search books prepared during the latest GitHub Pages build.</p>
+                                <h1 id="catalogTitle">Library index</h1>
+                                <p id="catalogSubtitle">Pick a book, resume where you left off, or open a copy saved on this device.</p>
                             </div>
                             <span id="catalogCount" class="catalog-count"></span>
+                        </div>
+
+                        <div class="catalog-tabs" aria-label="Library views">
+                            <button class="catalog-tab is-active" type="button" data-library-view="all">All Books</button>
+                            <button class="catalog-tab" type="button" data-library-view="saved">Saved</button>
+                            <button class="catalog-tab" type="button" data-library-view="reading">Reading</button>
                         </div>
 
                         <div id="catalogGrid" class="catalog-grid"></div>
@@ -1394,6 +1607,14 @@ input[type="range"] {
                                 <option value="26">Extra Large</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="reader-actions" aria-label="Reader actions">
+                        <button id="chooseBookButton" class="secondary" type="button">Choose Book</button>
+                        <button id="sharePageButton" class="secondary" type="button">Share Page</button>
+                        <button id="shareSelectionButton" class="secondary" type="button" disabled>Share Text</button>
+                        <span class="action-spacer"></span>
+                        <button id="offlineButton" class="secondary" type="button" disabled>Saving locally…</button>
                     </div>
 
                     <article class="book">
@@ -1430,8 +1651,13 @@ input[type="range"] {
         </section>
     </main>
 
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
     <script>
-const PAGE_SIZE = 24;
+        const PAGE_SIZE = 24;
+        const DB_NAME = "booksMaxxingLibrary";
+        const DB_VERSION = 1;
+        const BOOK_STORE = "books";
         const catalogView = document.getElementById("catalogView");
         const readerView = document.getElementById("readerView");
         const searchForm = document.getElementById("searchForm");
@@ -1445,6 +1671,10 @@ const PAGE_SIZE = 24;
         const previousCatalogButton = document.getElementById("previousCatalogButton");
         const nextCatalogButton = document.getElementById("nextCatalogButton");
         const libraryButton = document.getElementById("libraryButton");
+        const chooseBookButton = document.getElementById("chooseBookButton");
+        const sharePageButton = document.getElementById("sharePageButton");
+        const shareSelectionButton = document.getElementById("shareSelectionButton");
+        const offlineButton = document.getElementById("offlineButton");
         const readerTitle = document.getElementById("readerTitle");
         const readerAuthor = document.getElementById("readerAuthor");
         const gutenbergLink = document.getElementById("gutenbergLink");
@@ -1457,6 +1687,11 @@ const PAGE_SIZE = 24;
         const errorBox = document.getElementById("error");
         const layoutSelect = document.getElementById("layoutSelect");
         const fontSelect = document.getElementById("fontSelect");
+        const toast = document.getElementById("toast");
+        const libraryViewButtons = [...document.querySelectorAll("[data-library-view]")];
+        const allBooksCount = document.getElementById("allBooksCount");
+        const savedBooksCount = document.getElementById("savedBooksCount");
+        const readingBooksCount = document.getElementById("readingBooksCount");
 
         let allBooks = [];
         let filteredBooks = [];
@@ -1469,7 +1704,12 @@ const PAGE_SIZE = 24;
         let currentBookTitle = "";
         let catalogPage = 1;
         let catalogQuery = "";
+        let libraryView = "all";
         let readerController = null;
+        let savedBookIds = new Set();
+        let cachedSelection = null;
+        let sharedQuote = "";
+        let toastTimer = null;
         const phoneMedia = window.matchMedia("(max-width: 760px)");
         let touchStartX = 0;
         let touchStartY = 0;
@@ -1482,6 +1722,15 @@ const PAGE_SIZE = 24;
         function clearError() {
             errorBox.textContent = "";
             errorBox.style.display = "none";
+        }
+
+        function showToast(message) {
+            clearTimeout(toastTimer);
+            toast.textContent = message;
+            toast.hidden = false;
+            toastTimer = setTimeout(() => {
+                toast.hidden = true;
+            }, 2600);
         }
 
         function escapeHtml(value) {
@@ -1549,17 +1798,142 @@ const PAGE_SIZE = 24;
             return new Response(stream).text();
         }
 
+        function openLibraryDb() {
+            return new Promise((resolve, reject) => {
+                if (!("indexedDB" in window)) {
+                    reject(new Error("IndexedDB is unavailable."));
+                    return;
+                }
+
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(BOOK_STORE)) {
+                        db.createObjectStore(BOOK_STORE, { keyPath: "id" });
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error || new Error("Could not open local book storage."));
+            });
+        }
+
+        async function withBookStore(mode, action) {
+            const db = await openLibraryDb();
+            try {
+                return await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(BOOK_STORE, mode);
+                    const store = transaction.objectStore(BOOK_STORE);
+                    let result;
+                    try {
+                        result = action(store);
+                    } catch (error) {
+                        reject(error);
+                        return;
+                    }
+                    transaction.oncomplete = () => resolve(result);
+                    transaction.onerror = () => reject(transaction.error || new Error("Local book storage failed."));
+                    transaction.onabort = () => reject(transaction.error || new Error("Local book storage was aborted."));
+                });
+            } finally {
+                db.close();
+            }
+        }
+
+        async function getCachedBook(id) {
+            const db = await openLibraryDb();
+            try {
+                return await new Promise((resolve, reject) => {
+                    const request = db.transaction(BOOK_STORE, "readonly").objectStore(BOOK_STORE).get(Number(id));
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () => reject(request.error || new Error("Could not read local book."));
+                });
+            } finally {
+                db.close();
+            }
+        }
+
+        async function saveCachedBook(book, text) {
+            await withBookStore("readwrite", store => {
+                store.put({
+                    id: Number(book.id),
+                    title: book.title || `Book ${book.id}`,
+                    authors: book.authors || [],
+                    file: book.file || "",
+                    text,
+                    savedAt: Date.now()
+                });
+            });
+            savedBookIds.add(Number(book.id));
+            if (navigator.storage?.persist) {
+                navigator.storage.persist().catch(() => {});
+            }
+        }
+
+        async function deleteCachedBook(id) {
+            await withBookStore("readwrite", store => store.delete(Number(id)));
+            savedBookIds.delete(Number(id));
+        }
+
+        async function loadSavedBookIds() {
+            try {
+                const db = await openLibraryDb();
+                try {
+                    const ids = await new Promise((resolve, reject) => {
+                        const request = db.transaction(BOOK_STORE, "readonly").objectStore(BOOK_STORE).getAllKeys();
+                        request.onsuccess = () => resolve(request.result || []);
+                        request.onerror = () => reject(request.error || new Error("Could not list local books."));
+                    });
+                    savedBookIds = new Set(ids.map(Number));
+                } finally {
+                    db.close();
+                }
+            } catch {
+                savedBookIds = new Set();
+            }
+        }
+
+        function getStateKey(bookId = currentBookId) {
+            return `booksMaxxing:${bookId}`;
+        }
+
+        function hasReadingState(bookId) {
+            return Boolean(localStorage.getItem(getStateKey(bookId)));
+        }
+
+        function countReadingBooks() {
+            return allBooks.reduce((count, book) => count + (hasReadingState(book.id) ? 1 : 0), 0);
+        }
+
+        function updateLibraryCounts() {
+            allBooksCount.textContent = formatNumber(allBooks.length);
+            savedBooksCount.textContent = formatNumber(savedBookIds.size);
+            readingBooksCount.textContent = formatNumber(countReadingBooks());
+        }
+
+        function updateLibraryViewButtons() {
+            for (const button of libraryViewButtons) {
+                button.classList.toggle("is-active", button.dataset.libraryView === libraryView);
+            }
+        }
+
         function normalizeSearch(value) {
             return String(value || "").normalize("NFKD").toLocaleLowerCase();
         }
 
         function filterCatalog(query) {
-            const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
-            if (!terms.length) {
-                return allBooks;
+            let candidates = allBooks;
+            if (libraryView === "saved") {
+                candidates = allBooks.filter(book => savedBookIds.has(Number(book.id)));
+            } else if (libraryView === "reading") {
+                candidates = allBooks.filter(book => hasReadingState(book.id));
             }
 
-            return allBooks.filter(book => {
+            const terms = normalizeSearch(query).split(/\s+/).filter(Boolean);
+            if (!terms.length) {
+                return candidates;
+            }
+
+            return candidates.filter(book => {
                 const haystack = normalizeSearch([
                     book.id,
                     book.title,
@@ -1574,7 +1948,11 @@ const PAGE_SIZE = 24;
             if (!books.length) {
                 catalogGrid.innerHTML = "";
                 catalogStatus.hidden = false;
-                catalogStatus.textContent = "No books matched your search.";
+                catalogStatus.textContent = libraryView === "saved"
+                    ? "No books have been saved on this device yet. Open a book once and it will be stored locally."
+                    : libraryView === "reading"
+                        ? "No reading progress has been saved yet."
+                        : "No books matched your search.";
                 return;
             }
 
@@ -1584,6 +1962,12 @@ const PAGE_SIZE = 24;
                 const language = Array.isArray(book.languages) && book.languages.length
                     ? book.languages.join(", ").toUpperCase()
                     : "—";
+                const saved = savedBookIds.has(Number(book.id));
+                const reading = hasReadingState(book.id);
+                const statuses = [
+                    saved ? '<span class="local-badge">Saved locally</span>' : "",
+                    reading ? '<span class="progress-badge">Progress saved</span>' : ""
+                ].join("");
                 return `
                     <article class="book-card" data-book-id="${book.id}" tabindex="0" role="button" aria-label="Read ${escapeHtml(book.title)}">
                         <div class="book-card-main">
@@ -1595,16 +1979,27 @@ const PAGE_SIZE = 24;
                                 </div>
                                 <h2>${escapeHtml(book.title)}</h2>
                                 <div class="book-author">${escapeHtml(formatAuthors(book.authors))}</div>
+                                <div class="book-card-statuses">${statuses}</div>
                                 <p class="book-summary">${escapeHtml(summary)}</p>
                             </div>
                         </div>
                         <div class="book-card-footer">
                             <span class="downloads">${formatNumber(book.download_count)} downloads</span>
-                            <button type="button" data-book-id="${book.id}">Read</button>
+                            <button type="button" data-book-id="${book.id}">${reading ? "Resume" : "Read"}</button>
                         </div>
                     </article>
                 `;
             }).join("");
+        }
+
+        function libraryViewLabel() {
+            if (libraryView === "saved") {
+                return "Saved locally";
+            }
+            if (libraryView === "reading") {
+                return "Continue reading";
+            }
+            return "Library index";
         }
 
         function loadCatalog(query = catalogQuery, pageNumber = 1, updateUrl = true) {
@@ -1621,15 +2016,17 @@ const PAGE_SIZE = 24;
             previousCatalogButton.disabled = catalogPage <= 1;
             nextCatalogButton.disabled = catalogPage >= pageCount;
             catalogPageInfo.textContent = `Page ${catalogPage} / ${pageCount}`;
-            catalogTitle.textContent = catalogQuery ? `Results for “${catalogQuery}”` : "Popular books";
-            catalogCount.textContent = catalogQuery
-                ? `${formatNumber(filteredBooks.length)} of ${formatNumber(allBooks.length)} books`
-                : `${formatNumber(allBooks.length)} books`;
+            catalogTitle.textContent = catalogQuery ? `${libraryViewLabel()}: “${catalogQuery}”` : libraryViewLabel();
+            catalogCount.textContent = `${formatNumber(filteredBooks.length)} ${filteredBooks.length === 1 ? "book" : "books"}`;
 
             const buildDate = formatBuildDate(catalogGeneratedAt);
-            catalogSubtitle.textContent = buildDate
-                ? `Static Gutenberg library generated ${buildDate}. Search works entirely on GitHub Pages.`
-                : "Static Gutenberg library generated during the latest GitHub Pages build.";
+            catalogSubtitle.textContent = libraryView === "saved"
+                ? "Books in this view are stored in this browser and can be reopened without downloading the text again."
+                : libraryView === "reading"
+                    ? "Resume books at the same text location even when the page layout changes."
+                    : buildDate
+                        ? `Static Gutenberg library generated ${buildDate}. Pick any title to start reading.`
+                        : "Pick a book from the static Gutenberg index to start reading.";
 
             const statusBookCount = document.getElementById("statusBookCount");
             const statusBuildDate = document.getElementById("statusBuildDate");
@@ -1640,19 +2037,22 @@ const PAGE_SIZE = 24;
                 statusBuildDate.textContent = buildDate ? `Build ${buildDate}` : "Static build";
             }
 
+            updateLibraryCounts();
+            updateLibraryViewButtons();
+
             if (updateUrl) {
                 const url = new URL(window.location.href);
                 url.search = "";
-
+                if (libraryView !== "all") {
+                    url.searchParams.set("view", libraryView);
+                }
                 if (catalogQuery) {
                     url.searchParams.set("q", catalogQuery);
                 }
-
                 if (catalogPage > 1) {
                     url.searchParams.set("page", String(catalogPage));
                 }
-
-                history.pushState({ view: "catalog" }, "", url);
+                history.pushState({ view: "catalog", libraryView }, "", url);
             }
         }
 
@@ -1673,7 +2073,6 @@ const PAGE_SIZE = 24;
             for (const pattern of startPatterns) {
                 cleaned = cleaned.replace(pattern, "");
             }
-
             for (const pattern of endPatterns) {
                 cleaned = cleaned.replace(pattern, "");
             }
@@ -1681,13 +2080,8 @@ const PAGE_SIZE = 24;
             return cleaned.replace(/\n{4,}/g, "\n\n\n").trim();
         }
 
-        function getStateKey() {
-            return `booksMaxxing:${currentBookId}`;
-        }
-
         function estimateCharactersPerPage() {
             const fontSize = Number(fontSelect.value);
-
             if (phoneMedia.matches) {
                 const widthFactor = Math.max(0.82, Math.min(1.28, window.innerWidth / 390));
                 const fontFactor = 20 / fontSize;
@@ -1698,23 +2092,20 @@ const PAGE_SIZE = 24;
             if (isSingle) {
                 return Math.max(1600, Math.floor(42000 / fontSize));
             }
-
             return Math.max(2600, Math.floor(76000 / fontSize));
         }
 
-        function splitIntoPages(text) {
+        function paginateText(text) {
             const target = estimateCharactersPerPage();
             const result = [];
             let index = 0;
 
             while (index < text.length) {
                 let end = Math.min(index + target, text.length);
-
                 if (end < text.length) {
                     const paragraphBreak = text.lastIndexOf("\n\n", end);
                     const sentenceBreak = text.lastIndexOf(". ", end);
                     const spaceBreak = text.lastIndexOf(" ", end);
-
                     if (paragraphBreak > index + target * 0.55) {
                         end = paragraphBreak + 2;
                     } else if (sentenceBreak > index + target * 0.65) {
@@ -1724,45 +2115,99 @@ const PAGE_SIZE = 24;
                     }
                 }
 
-                result.push(text.slice(index, end).trim());
+                const raw = text.slice(index, end);
+                const trimmed = raw.trim();
+                if (trimmed) {
+                    const leading = raw.length - raw.trimStart().length;
+                    result.push({
+                        text: trimmed,
+                        start: index + leading,
+                        end: index + leading + trimmed.length
+                    });
+                }
                 index = end;
             }
 
-            return result.filter(Boolean);
+            return result;
+        }
+
+        function findPageByLocation(location) {
+            const target = Math.max(0, Number(location) || 0);
+            if (!pages.length) {
+                return 0;
+            }
+
+            let low = 0;
+            let high = pages.length - 1;
+            while (low <= high) {
+                const mid = Math.floor((low + high) / 2);
+                const item = pages[mid];
+                if (target < item.start) {
+                    high = mid - 1;
+                } else if (target > item.end) {
+                    low = mid + 1;
+                } else {
+                    return mid;
+                }
+            }
+            return Math.min(pages.length - 1, Math.max(0, low));
+        }
+
+        function readState(bookId = currentBookId) {
+            const rawState = localStorage.getItem(getStateKey(bookId));
+            if (!rawState) {
+                return null;
+            }
+            try {
+                return JSON.parse(rawState);
+            } catch {
+                localStorage.removeItem(getStateKey(bookId));
+                return null;
+            }
         }
 
         function saveState() {
             if (!currentBookId || !pages.length) {
                 return;
             }
-
             localStorage.setItem(getStateKey(), JSON.stringify({
                 currentPage,
+                location: pages[currentPage]?.start || 0,
                 layout: layoutSelect.value,
-                fontSize: fontSelect.value
+                fontSize: fontSelect.value,
+                updatedAt: Date.now()
             }));
+            updateLibraryCounts();
         }
 
-        function loadState() {
-            currentPage = 0;
-            layoutSelect.value = phoneMedia.matches ? "single" : "double";
-            fontSelect.value = "20";
-
-            const rawState = localStorage.getItem(getStateKey());
-
-            if (rawState) {
-                try {
-                    const state = JSON.parse(rawState);
-                    layoutSelect.value = phoneMedia.matches ? "single" : (state.layout || "double");
-                    fontSelect.value = state.fontSize || "20";
-                    currentPage = Number(state.currentPage) || 0;
-                } catch {
-                    localStorage.removeItem(getStateKey());
-                }
-            }
-
+        function applyReaderPreferences() {
+            const state = readState();
+            layoutSelect.value = phoneMedia.matches ? "single" : (state?.layout || "double");
+            fontSelect.value = state?.fontSize || "20";
             layoutSelect.disabled = phoneMedia.matches;
             document.documentElement.style.setProperty("--font-size", `${fontSelect.value}px`);
+            return state;
+        }
+
+        function renderPageText(text, quote = "") {
+            page.textContent = "";
+            let highlighted = quote;
+            let match = quote ? text.indexOf(quote) : -1;
+            if (match < 0 && quote) {
+                highlighted = quote.slice(0, Math.min(160, quote.length)).trim();
+                match = highlighted ? text.indexOf(highlighted) : -1;
+            }
+            if (match < 0) {
+                page.textContent = text;
+                return;
+            }
+
+            page.append(document.createTextNode(text.slice(0, match)));
+            const mark = document.createElement("mark");
+            mark.textContent = highlighted;
+            page.append(mark);
+            page.append(document.createTextNode(text.slice(match + highlighted.length)));
+            requestAnimationFrame(() => mark.scrollIntoView({ block: "center", behavior: "smooth" }));
         }
 
         function renderPage() {
@@ -1776,7 +2221,7 @@ const PAGE_SIZE = 24;
             }
 
             currentPage = Math.min(Math.max(currentPage, 0), pages.length - 1);
-            page.textContent = pages[currentPage];
+            renderPageText(pages[currentPage].text, sharedQuote);
             page.classList.toggle("single", layoutSelect.value === "single");
             pageInfo.textContent = `Page ${currentPage + 1} / ${pages.length}`;
             previousButton.disabled = currentPage === 0;
@@ -1784,6 +2229,8 @@ const PAGE_SIZE = 24;
             progressInput.disabled = false;
             progressInput.max = String(pages.length - 1);
             progressInput.value = String(currentPage);
+            cachedSelection = null;
+            shareSelectionButton.disabled = true;
             saveState();
         }
 
@@ -1792,13 +2239,143 @@ const PAGE_SIZE = 24;
                 return;
             }
 
-            const progress = pages.length > 1 ? currentPage / (pages.length - 1) : 0;
-            pages = splitIntoPages(bookText);
-            currentPage = Math.min(
-                pages.length - 1,
-                Math.max(0, Math.round(progress * Math.max(0, pages.length - 1)))
-            );
+            const location = pages[currentPage]?.start || 0;
+            pages = paginateText(bookText);
+            currentPage = findPageByLocation(location);
             renderPage();
+        }
+
+        function updateOfflineButton() {
+            const saved = savedBookIds.has(Number(currentBookId));
+            offlineButton.disabled = !currentBookId;
+            offlineButton.classList.toggle("is-saved", saved);
+            offlineButton.textContent = saved ? "Remove Local Copy" : "Save Locally";
+        }
+
+        function makeBookUrl(location, quote = "") {
+            const url = new URL(window.location.href);
+            url.search = "";
+            url.searchParams.set("book", String(currentBookId));
+            url.searchParams.set("loc", String(Math.max(0, Number(location) || 0)));
+            url.searchParams.set("p", String(currentPage + 1));
+            if (quote) {
+                url.searchParams.set("quote", quote.slice(0, 360));
+            }
+            return url;
+        }
+
+        async function sharePayload(payload) {
+            if (navigator.share) {
+                try {
+                    await navigator.share(payload);
+                    return;
+                } catch (error) {
+                    if (error.name === "AbortError") {
+                        return;
+                    }
+                }
+            }
+
+            const fallback = [payload.text, payload.url].filter(Boolean).join("\n\n");
+            try {
+                await navigator.clipboard.writeText(fallback);
+                showToast("Share link copied to clipboard.");
+            } catch {
+                window.prompt("Copy this share link:", payload.url || fallback);
+            }
+        }
+
+        async function shareCurrentPage() {
+            if (!currentBookId || !pages.length) {
+                return;
+            }
+            const url = makeBookUrl(pages[currentPage].start);
+            await sharePayload({
+                title: `${currentBookTitle} — page ${currentPage + 1}`,
+                text: `${currentBookTitle}, page ${currentPage + 1} in BooksMaxxing`,
+                url: url.href
+            });
+        }
+
+        function captureSelection() {
+            if (readerView.hidden || !pages.length) {
+                return;
+            }
+
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+                return;
+            }
+
+            const range = selection.getRangeAt(0);
+            const common = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+                ? range.commonAncestorContainer.parentElement
+                : range.commonAncestorContainer;
+            if (!common || !page.contains(common)) {
+                return;
+            }
+
+            const raw = selection.toString();
+            const selected = raw.trim();
+            if (!selected) {
+                return;
+            }
+
+            const before = document.createRange();
+            before.selectNodeContents(page);
+            try {
+                before.setEnd(range.startContainer, range.startOffset);
+            } catch {
+                return;
+            }
+            const leading = raw.length - raw.trimStart().length;
+            const localOffset = before.toString().length + leading;
+            cachedSelection = {
+                text: selected.slice(0, 1200),
+                location: (pages[currentPage]?.start || 0) + localOffset
+            };
+            shareSelectionButton.disabled = false;
+        }
+
+        async function shareSelectedText() {
+            if (!cachedSelection?.text) {
+                showToast("Select text on the current page first.");
+                return;
+            }
+
+            const quoteForLink = cachedSelection.text.slice(0, 360);
+            const url = makeBookUrl(cachedSelection.location, quoteForLink);
+            await sharePayload({
+                title: `${currentBookTitle} — shared passage`,
+                text: `“${cachedSelection.text}”\n\n— ${currentBookTitle}`,
+                url: url.href
+            });
+        }
+
+        function applySharedLocation(state, updateUrl) {
+            if (updateUrl) {
+                if (state?.location != null) {
+                    currentPage = findPageByLocation(state.location);
+                } else if (Number.isInteger(Number(state?.currentPage))) {
+                    currentPage = Math.min(pages.length - 1, Math.max(0, Number(state.currentPage)));
+                }
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const location = Number(params.get("loc"));
+            const pageNumber = Number(params.get("p"));
+            sharedQuote = (params.get("quote") || "").slice(0, 360);
+
+            if (Number.isFinite(location) && location >= 0 && params.has("loc")) {
+                currentPage = findPageByLocation(location);
+            } else if (Number.isInteger(pageNumber) && pageNumber > 0) {
+                currentPage = Math.min(pages.length - 1, pageNumber - 1);
+            } else if (state?.location != null) {
+                currentPage = findPageByLocation(state.location);
+            } else if (Number.isInteger(Number(state?.currentPage))) {
+                currentPage = Math.min(pages.length - 1, Math.max(0, Number(state.currentPage)));
+            }
         }
 
         async function openBook(bookId, updateUrl = true) {
@@ -1817,7 +2394,6 @@ const PAGE_SIZE = 24;
             }
 
             clearError();
-
             if (readerController) {
                 readerController.abort();
             }
@@ -1828,6 +2404,8 @@ const PAGE_SIZE = 24;
             bookText = "";
             pages = [];
             currentPage = 0;
+            sharedQuote = "";
+            cachedSelection = null;
 
             catalogView.hidden = true;
             readerView.hidden = false;
@@ -1840,6 +2418,9 @@ const PAGE_SIZE = 24;
             previousButton.disabled = true;
             nextButton.disabled = true;
             progressInput.disabled = true;
+            shareSelectionButton.disabled = true;
+            offlineButton.disabled = true;
+            offlineButton.textContent = "Loading local copy…";
             gutenbergLink.href = `https://www.gutenberg.org/ebooks/${id}`;
             window.scrollTo({ top: 0, behavior: "instant" });
 
@@ -1852,25 +2433,49 @@ const PAGE_SIZE = 24;
 
             try {
                 const authors = formatAuthors(book.authors);
-                const text = await fetchGzipText(new URL(book.file, document.baseURI), {
-                    signal: readerController.signal
-                });
+                let cached = null;
+                try {
+                    cached = await getCachedBook(id);
+                } catch {
+                    cached = null;
+                }
+
+                if (cached?.text && (!book.file || cached.file === book.file)) {
+                    bookText = cached.text;
+                    savedBookIds.add(id);
+                } else {
+                    offlineButton.textContent = "Downloading…";
+                    const text = await fetchGzipText(new URL(book.file, document.baseURI), {
+                        signal: readerController.signal
+                    });
+                    bookText = cleanBookText(text);
+                    try {
+                        await saveCachedBook(book, bookText);
+                        showToast("Book saved locally on this device.");
+                    } catch {
+                        showToast("Book opened, but local offline storage was unavailable.");
+                    }
+                }
 
                 readerTitle.textContent = currentBookTitle;
                 readerAuthor.textContent = authors;
                 bookName.textContent = `${currentBookTitle} — ${authors}`;
-                bookText = cleanBookText(text);
-                loadState();
-                pages = splitIntoPages(bookText);
+                const state = applyReaderPreferences();
+                pages = paginateText(bookText);
+                applySharedLocation(state, updateUrl);
                 currentPage = Math.min(Math.max(currentPage, 0), Math.max(0, pages.length - 1));
+                updateOfflineButton();
+                updateLibraryCounts();
                 renderPage();
             } catch (error) {
                 if (error.name === "AbortError") {
                     return;
                 }
-
-                page.textContent = "Could not open this book.";
+                page.textContent = savedBookIds.has(id)
+                    ? "Could not read the saved local copy."
+                    : "Could not open this book. If you are offline, open it once while connected so it can be saved locally.";
                 showError(error.message);
+                updateOfflineButton();
             }
         }
 
@@ -1878,26 +2483,28 @@ const PAGE_SIZE = 24;
             if (readerController) {
                 readerController.abort();
             }
-
             saveState();
             readerView.hidden = true;
             catalogView.hidden = false;
             document.body.classList.remove("reader-mode");
             clearError();
+            cachedSelection = null;
+            shareSelectionButton.disabled = true;
+            loadCatalog(catalogQuery, catalogPage, false);
 
             if (updateUrl) {
                 const url = new URL(window.location.href);
                 url.search = "";
-
+                if (libraryView !== "all") {
+                    url.searchParams.set("view", libraryView);
+                }
                 if (catalogQuery) {
                     url.searchParams.set("q", catalogQuery);
                 }
-
                 if (catalogPage > 1) {
                     url.searchParams.set("page", String(catalogPage));
                 }
-
-                history.pushState({ view: "catalog" }, "", url);
+                history.pushState({ view: "catalog", libraryView }, "", url);
             }
         }
 
@@ -1907,6 +2514,16 @@ const PAGE_SIZE = 24;
             loadCatalog(searchInput.value, 1, true);
         });
 
+        for (const button of libraryViewButtons) {
+            button.addEventListener("click", () => {
+                libraryView = ["all", "saved", "reading"].includes(button.dataset.libraryView)
+                    ? button.dataset.libraryView
+                    : "all";
+                showLibrary(false);
+                loadCatalog(catalogQuery, 1, true);
+            });
+        }
+
         catalogGrid.addEventListener("click", event => {
             const target = event.target.closest("[data-book-id]");
             if (target) {
@@ -1915,15 +2532,13 @@ const PAGE_SIZE = 24;
         });
 
         catalogGrid.addEventListener("keydown", event => {
-            if (!['Enter', ' '].includes(event.key)) {
+            if (!["Enter", " "].includes(event.key)) {
                 return;
             }
-
             const card = event.target.closest("article[data-book-id]");
             if (!card) {
                 return;
             }
-
             event.preventDefault();
             openBook(card.dataset.bookId, true);
         });
@@ -1942,10 +2557,34 @@ const PAGE_SIZE = 24;
         });
 
         libraryButton.addEventListener("click", () => showLibrary(true));
+        chooseBookButton.addEventListener("click", () => showLibrary(true));
+        sharePageButton.addEventListener("click", shareCurrentPage);
+        shareSelectionButton.addEventListener("click", shareSelectedText);
+
+        offlineButton.addEventListener("click", async () => {
+            if (!currentBookId || !bookText) {
+                return;
+            }
+            const book = booksById.get(currentBookId);
+            try {
+                if (savedBookIds.has(currentBookId)) {
+                    await deleteCachedBook(currentBookId);
+                    showToast("Local book copy removed. Reading progress is still saved.");
+                } else {
+                    await saveCachedBook(book, bookText);
+                    showToast("Book saved locally on this device.");
+                }
+                updateOfflineButton();
+                updateLibraryCounts();
+            } catch (error) {
+                showToast(error.message || "Could not update local book storage.");
+            }
+        });
 
         previousButton.addEventListener("click", () => {
             if (currentPage > 0) {
                 currentPage -= 1;
+                sharedQuote = "";
                 renderPage();
             }
         });
@@ -1953,27 +2592,31 @@ const PAGE_SIZE = 24;
         nextButton.addEventListener("click", () => {
             if (currentPage < pages.length - 1) {
                 currentPage += 1;
+                sharedQuote = "";
                 renderPage();
             }
         });
 
         progressInput.addEventListener("input", () => {
             currentPage = Number(progressInput.value);
+            sharedQuote = "";
             renderPage();
         });
 
         layoutSelect.addEventListener("change", rebuildPages);
-
         fontSelect.addEventListener("change", () => {
             document.documentElement.style.setProperty("--font-size", `${fontSelect.value}px`);
             rebuildPages();
+        });
+
+        document.addEventListener("selectionchange", () => {
+            window.setTimeout(captureSelection, 0);
         });
 
         document.addEventListener("keydown", event => {
             if (readerView.hidden || ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
                 return;
             }
-
             if (event.key === "ArrowLeft") {
                 previousButton.click();
             } else if (event.key === "ArrowRight") {
@@ -1982,28 +2625,24 @@ const PAGE_SIZE = 24;
         });
 
         const bookSurface = document.querySelector(".book");
-
         bookSurface.addEventListener("touchstart", event => {
             if (!phoneMedia.matches || event.touches.length !== 1) {
                 return;
             }
-
             touchStartX = event.touches[0].clientX;
             touchStartY = event.touches[0].clientY;
         }, { passive: true });
 
         bookSurface.addEventListener("touchend", event => {
-            if (!phoneMedia.matches || event.changedTouches.length !== 1) {
+            const selection = window.getSelection();
+            if (!phoneMedia.matches || event.changedTouches.length !== 1 || (selection && !selection.isCollapsed)) {
                 return;
             }
-
             const deltaX = event.changedTouches[0].clientX - touchStartX;
             const deltaY = event.changedTouches[0].clientY - touchStartY;
-
             if (Math.abs(deltaX) < 55 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.2) {
                 return;
             }
-
             if (deltaX < 0) {
                 nextButton.click();
             } else {
@@ -2016,21 +2655,23 @@ const PAGE_SIZE = 24;
             if (phoneMedia.matches) {
                 layoutSelect.value = "single";
             }
-
             if (bookText) {
                 rebuildPages();
             }
         });
 
+        window.addEventListener("beforeunload", saveState);
+        window.addEventListener("pagehide", saveState);
+
         window.addEventListener("popstate", () => {
             const params = new URLSearchParams(window.location.search);
             const bookId = Number(params.get("book"));
-
             if (bookId > 0) {
                 openBook(bookId, false);
                 return;
             }
-
+            const view = params.get("view");
+            libraryView = ["all", "saved", "reading"].includes(view) ? view : "all";
             showLibrary(false);
             loadCatalog(params.get("q") || "", Number(params.get("page")) || 1, false);
         });
@@ -2044,6 +2685,8 @@ const PAGE_SIZE = 24;
             catalogStatus.hidden = false;
             catalogStatus.textContent = "Loading static library…";
 
+            await loadSavedBookIds();
+
             try {
                 const data = await fetchJson(new URL("data/catalog.json", document.baseURI));
                 allBooks = Array.isArray(data.books) ? data.books : [];
@@ -2052,12 +2695,15 @@ const PAGE_SIZE = 24;
                 catalogGeneratedAt = data.generated_at || "";
             } catch (error) {
                 catalogStatus.textContent = "Could not load the static catalog.";
-                showError(`${error.message} Run the GitHub Pages workflow or scripts/build_library.py first.`);
+                showError(`${error.message} If this is the first visit, connect once so the library index can be cached.`);
                 return;
             }
 
+            updateLibraryCounts();
             const params = new URLSearchParams(window.location.search);
             const bookId = Number(params.get("book"));
+            const view = params.get("view");
+            libraryView = ["all", "saved", "reading"].includes(view) ? view : "all";
 
             if (bookId > 0) {
                 await openBook(bookId, false);
@@ -2065,6 +2711,12 @@ const PAGE_SIZE = 24;
             }
 
             loadCatalog(params.get("q") || "", Number(params.get("page")) || 1, false);
+        }
+
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(() => {});
+            });
         }
 
         initialize();

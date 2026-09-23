@@ -48,14 +48,23 @@ The workflow will:
 
 ### Library
 
+- **Library index**  
+  Pick from every generated title, filter to books saved on the current device, or jump directly back into books already in progress.
+
 - **Deploy-time Gutenberg ingestion**  
   Books are gathered during GitHub Actions builds instead of being requested from Gutenberg every time a visitor opens the site.
 
 - **Searchable local catalog**  
-  Search generated books by title or author directly in the browser.
+  Search generated books by title, author, language, or Gutenberg ID directly in the browser.
+
+- **Automatic local book saving**  
+  After a book opens successfully, its cleaned text is stored in IndexedDB on that device. Reopening the title uses the local copy first.
+
+- **Offline app shell**  
+  A service worker caches the reader, catalog, manifest, and interface assets. Books that have already been saved locally can be reopened without downloading their text again.
 
 - **Static compressed book storage**  
-  Readable text is stored as `.txt.gz` files so more books can fit inside the Pages artifact.
+  Deploy-time book content is stored as `.txt.gz` files so more books can fit inside the Pages artifact.
 
 - **Automatic catalog pagination**  
   Browse large generated libraries without loading every result into the visible list at once.
@@ -72,8 +81,12 @@ The workflow will:
   Touch-first catalog with sticky search, larger book targets, single-page reading, compact reader controls, fixed page navigation, and left/right swipe gestures.
 
 - Adjustable font size
-- Per-book reading progress using `localStorage`
+- Per-book reading position stored locally with a character-location anchor, so progress survives font-size and desktop/mobile pagination changes
 - Automatic layout switching at the phone breakpoint
+- **Share Page** links that reopen the same book near the same text location
+- **Share Text** for selected passages, using the native share sheet when available and clipboard fallback otherwise
+- Shared passage links can highlight the selected quote when the recipient opens the book
+- **Choose Book** is always available from the reader so returning to the index does not require browser navigation
 - No login or runtime API required
 
 ### Deployment
@@ -172,12 +185,35 @@ http://127.0.0.1:8000
 
 The source `index.html` is a build input. The generated reader expects `site/data/catalog.json` and `site/books/`, so local testing should be done from the generated `site/` directory.
 
+
+## Local Library and Sharing
+
+BooksMaxxing keeps two kinds of browser-local state:
+
+- **Book text:** stored in IndexedDB after the first successful open
+- **Reading position and reader preferences:** stored in `localStorage` per Gutenberg ID
+
+Local copies belong to that browser profile and device. Clearing site data removes saved books and progress. The app requests persistent browser storage when supported, but final storage retention is controlled by the browser.
+
+The saved reading position is based on a character location inside the book instead of relying only on a rendered page number. This lets the same progress map onto different page counts when moving between desktop and phone layouts or changing the font size.
+
+Reader sharing supports two link types:
+
+```text
+?book=84&loc=12540&p=11
+?book=84&loc=12540&p=11&quote=selected%20text
+```
+
+`loc` is the stable text location used to reopen the relevant passage. `p` is included as a human-readable page hint. A passage share also includes a short `quote` value so the relevant text can be highlighted after opening.
+
 ## Build Output
 
 ```text
 site/
 ├── .nojekyll
 ├── index.html
+├── manifest.webmanifest
+├── sw.js
 ├── assets/
 │   ├── favicon.png
 │   └── logo.png
@@ -204,6 +240,8 @@ site/
 │   └── logo.png
 ├── scripts/
 │   └── build_library.py
+├── manifest.webmanifest
+├── sw.js
 ├── .gitattributes
 ├── .gitignore
 ├── README.md
