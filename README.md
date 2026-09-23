@@ -1,8 +1,8 @@
 <p align="center">
-  <strong>BooksMaxxing — Static Project Gutenberg Reader</strong><br/>
+  <strong>Codex — Static Project Gutenberg Reader</strong><br/>
   A deploy-time digital library built for GitHub Pages.<br/>
   Search, browse, and read thousands of public-domain books without running a backend server.<br/><br/>
-  <img src="./assets/logo.png" alt="BooksMaxxing Logo" width="180" />
+  <img src="./assets/logo.png" alt="Codex Logo" width="180" />
 </p>
 
 <p align="center">
@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/Backend-None-92b95a" alt="No Runtime Backend" />
 </p>
 
-<h1 align="center">BooksMaxxing</h1>
+<h1 align="center">Codex</h1>
 
 ---
 
@@ -23,8 +23,8 @@
 </p>
 
 ```bash
-git clone https://github.com/<username>/<repository>.git
-cd <repository>
+git clone https://github.com/<username>/Codex.git
+cd Codex
 git push origin main
 ```
 
@@ -32,12 +32,12 @@ Then open:
 
 **Settings → Pages → Build and deployment → Source → GitHub Actions**
 
-Run **Build and deploy Gutenberg library** from the Actions tab, or push a commit to `main`.
+Run **Build and deploy Codex** from the Actions tab, or push a commit to `main`.
 
 The workflow will:
 
-1. Collect book metadata from Gutendex
-2. Retrieve readable Project Gutenberg texts
+1. Collect book metadata from Gutendex in popularity order
+2. Retrieve readable texts from Gutenberg-compatible mirrors
 3. Reuse previously cached book downloads
 4. Compress book content for static hosting
 5. Generate the searchable catalog
@@ -102,7 +102,7 @@ The workflow will:
 ## How It Works
 
 ```text
-Project Gutenberg + Gutendex
+Gutendex + Gutenberg mirrors
              |
              v
   scripts/build_library.py
@@ -131,7 +131,8 @@ env:
   MAX_SITE_BYTES: "850000000"
   MAX_BOOK_BYTES: "26214400"
   MAX_BOOKS: "0"
-  DOWNLOAD_DELAY: "2"
+  DOWNLOAD_DELAY: "0.25"
+  GUTENBERG_MIRRORS: "https://aleph.gutenberg.org,https://mirrors.xmission.com/gutenberg"
 ```
 
 | Setting | Description |
@@ -140,7 +141,8 @@ env:
 | `MAX_SITE_BYTES` | Approximate generated book-data budget before the builder stops adding titles. |
 | `MAX_BOOK_BYTES` | Maximum uncompressed size allowed for a single book. |
 | `MAX_BOOKS` | Maximum number of books to include. `0` disables the explicit count limit. |
-| `DOWNLOAD_DELAY` | Delay in seconds between uncached Gutenberg downloads. |
+| `DOWNLOAD_DELAY` | Delay in seconds between uncached mirror downloads. |
+| `GUTENBERG_MIRRORS` | Comma-separated Gutenberg-compatible HTTP mirrors. Codex tries them in order. |
 
 ### English-Only Library
 
@@ -168,7 +170,7 @@ python scripts/build_library.py \
   --languages en \
   --max-books 25 \
   --max-site-bytes 50000000 \
-  --delay 2
+  --delay 0.25
 ```
 
 Serve the generated site:
@@ -188,7 +190,7 @@ The source `index.html` is a build input. The generated reader expects `site/dat
 
 ## Local Library and Sharing
 
-BooksMaxxing keeps two kinds of browser-local state:
+Codex keeps two kinds of browser-local state:
 
 - **Book text:** stored in IndexedDB after the first successful open
 - **Reading position and reader preferences:** stored in `localStorage` per Gutenberg ID
@@ -252,18 +254,27 @@ site/
 
 Open:
 
-**Actions → Build and deploy Gutenberg library → Run workflow**
+**Actions → Build and deploy Codex → Run workflow**
 
 A scheduled rebuild also runs every Monday. The Actions cache keeps previously downloaded book text available between builds when possible, reducing unnecessary repeat downloads.
 
+
+## Troubleshooting
+
+### `HTTP Error 406: Not Acceptable`
+
+Older builds used `https://www.gutenberg.org/robot/harvest`, which can reject requests from shared CI infrastructure such as GitHub Actions. The current Codex builder does not use that endpoint. Metadata is paged from Gutendex and book files are fetched from the mirrors configured in `GUTENBERG_MIRRORS`.
+
+If a mirror is temporarily unavailable, Codex automatically tries the next configured mirror. The Actions cache also retains successful catalog pages and book downloads between builds.
+
 ## Data Sources
 
-BooksMaxxing uses:
+Codex uses:
 
 - **Project Gutenberg** for public-domain ebook text
 - **Gutendex** for searchable Gutenberg metadata
 
-The build process uses Gutenberg-oriented automated download sources rather than scraping normal book pages. Copyright status may differ between jurisdictions, so anyone publicly redistributing generated content should consider the laws that apply to their deployment.
+The build process enumerates readable titles through Gutendex and downloads the text from Gutenberg-compatible mirrors instead of scraping normal book pages or calling the `robot/harvest` endpoint. Copyright status may differ between jurisdictions, so anyone publicly redistributing generated content should consider the laws that apply to their deployment.
 
 ## Contributing
 

@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#181e19">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>BooksMaxxing</title>
+    <title>Codex</title>
     <link rel="icon" href="assets/favicon.png" type="image/png">
     <link rel="manifest" href="manifest.webmanifest">
     <style>
@@ -1509,11 +1509,11 @@ input[type="range"] {
 </head>
 <body>
     <main class="shell">
-        <section class="desktop-window" aria-label="BooksMaxxing reader">
+        <section class="desktop-window" aria-label="Codex reader">
             <header class="window-titlebar">
                 <div class="window-title">
                     <img src="assets/logo.png" alt="">
-                    <strong>BooksMaxxing</strong>
+                    <strong>Codex</strong>
                     <span>Project Gutenberg Archive</span>
                 </div>
                 <div class="window-controls" aria-hidden="true">
@@ -1541,7 +1541,7 @@ input[type="range"] {
                     <aside class="catalog-sidebar">
                         <div class="sidebar-brand">
                             <img src="assets/logo.png" alt="">
-                            <strong>BooksMaxxing</strong>
+                            <strong>Codex</strong>
                             <span>Public domain archive</span>
                         </div>
                         <section class="sidebar-section">
@@ -1655,7 +1655,7 @@ input[type="range"] {
 
     <script>
         const PAGE_SIZE = 24;
-        const DB_NAME = "booksMaxxingLibrary";
+        const DB_NAME = "codexLibrary";
         const DB_VERSION = 1;
         const BOOK_STORE = "books";
         const catalogView = document.getElementById("catalogView");
@@ -1893,7 +1893,7 @@ input[type="range"] {
         }
 
         function getStateKey(bookId = currentBookId) {
-            return `booksMaxxing:${bookId}`;
+            return `codex:${bookId}`;
         }
 
         function hasReadingState(bookId) {
@@ -2292,7 +2292,7 @@ input[type="range"] {
             const url = makeBookUrl(pages[currentPage].start);
             await sharePayload({
                 title: `${currentBookTitle} — page ${currentPage + 1}`,
-                text: `${currentBookTitle}, page ${currentPage + 1} in BooksMaxxing`,
+                text: `${currentBookTitle}, page ${currentPage + 1} in Codex`,
                 url: url.href
             });
         }

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import argparse
 import gzip
-import html.parser
+import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import time
@@ -17,36 +18,12 @@ from io import BytesIO
 from pathlib import Path
 
 GUTENDEX_BASE = "https://gutendex.com/books"
-HARVEST_BASE = "https://www.gutenberg.org/robot/harvest"
+DEFAULT_MIRRORS = "https://aleph.gutenberg.org,https://mirrors.xmission.com/gutenberg"
 DEFAULT_MAX_SITE_BYTES = 850_000_000
 DEFAULT_MAX_BOOK_BYTES = 25 * 1024 * 1024
-DEFAULT_DELAY = 2.0
+DEFAULT_DELAY = 0.25
 CATALOG_RESERVE_BYTES = 20 * 1024 * 1024
-
-
-class HarvestParser(html.parser.HTMLParser):
-    def __init__(self) -> None:
-        super().__init__()
-        self.links: list[tuple[str, str]] = []
-        self._href: str | None = None
-        self._text: list[str] = []
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag.lower() != "a":
-            return
-        self._href = dict(attrs).get("href")
-        self._text = []
-
-    def handle_data(self, data: str) -> None:
-        if self._href is not None:
-            self._text.append(data)
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag.lower() != "a" or self._href is None:
-            return
-        self.links.append((self._href, "".join(self._text).strip()))
-        self._href = None
-        self._text = []
+PAGE_SIZE = 32
 
 
 def parse_args() -> argparse.Namespace:
@@ -58,12 +35,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-books", type=int, default=0)
     parser.add_argument("--languages", default="en")
     parser.add_argument("--delay", type=float, default=DEFAULT_DELAY)
+    parser.add_argument("--mirrors", default=os.environ.get("GUTENBERG_MIRRORS", DEFAULT_MIRRORS))
     return parser.parse_args()
 
 
 def user_agent() -> str:
-    repository = os.environ.get("GITHUB_REPOSITORY", "BooksMaxxing")
-    return f"BooksMaxxing static-library builder ({repository})"
+    repository = os.environ.get("GITHUB_REPOSITORY", "bleonheart/Codex")
+    repository_url = f"https://github.com/{repository}" if "/" in repository else repository
+    return f"Codex static-library builder/1.0 (+{repository_url})"
 
 
 def request_bytes(
@@ -73,13 +52,16 @@ def request_bytes(
     max_bytes: int | None = None,
     retries: int = 2,
 ) -> bytes:
-    request = urllib.request.Request(
-        url,
-        headers={
-            "Accept": accept,
-            "User-Agent": user_agent(),
-        },
-    )
+    headers = {
+        "Accept": accept,
+        "Accept-Encoding": "identity",
+        "User-Agent": user_agent(),
+    }
+    contact = os.environ.get("GUTENBERG_CONTACT", "").strip()
+    if contact:
+        headers["From"] = contact
+
+    request = urllib.request.Request(url, headers=headers)
 
     for attempt in range(retries + 1):
         try:
@@ -99,8 +81,8 @@ def request_bytes(
             if attempt >= retries:
                 raise
             retry_after = error.headers.get("Retry-After") if error.headers else None
-            delay = float(retry_after) if retry_after and retry_after.isdigit() else min(2 ** attempt, 8)
-            time.sleep(delay)
+            wait = float(retry_after) if retry_after and retry_after.isdigit() else min(2 ** attempt, 8)
+            time.sleep(wait)
         except (urllib.error.URLError, TimeoutError):
             if attempt >= retries:
                 raise
@@ -110,46 +92,92 @@ def request_bytes(
 
 
 def request_json(url: str) -> dict:
-    return json.loads(request_bytes(url, "application/json", 45, 8 * 1024 * 1024).decode("utf-8"))
+    return json.loads(request_bytes(url, "application/json", 60, 16 * 1024 * 1024).decode("utf-8"))
 
 
-def harvest_url(languages: list[str]) -> str:
-    params: list[tuple[str, str]] = [("filetypes[]", "txt")]
-    params.extend(("langs[]", language) for language in languages)
-    return f"{HARVEST_BASE}?{urllib.parse.urlencode(params)}"
+def catalog_url(page: int, languages: list[str]) -> str:
+    params: list[tuple[str, str]] = [
+        ("page", str(page)),
+        ("sort", "popular"),
+        ("mime_type", "text/plain"),
+    ]
+    if languages:
+        params.append(("languages", ",".join(languages)))
+    return f"{GUTENDEX_BASE}?{urllib.parse.urlencode(params)}"
 
 
-def parse_harvest_page(url: str) -> tuple[dict[int, list[str]], str | None]:
-    document = request_bytes(url, "text/html", 45, 2 * 1024 * 1024).decode("utf-8", errors="replace")
-    parser = HarvestParser()
-    parser.feed(document)
-    archives: dict[int, list[str]] = {}
-    next_url: str | None = None
-
-    for href, text in parser.links:
-        absolute = urllib.parse.urljoin(url, href)
-        filename = Path(urllib.parse.urlparse(absolute).path).name
-        stem = filename[:-4] if filename.lower().endswith(".zip") else filename
-        prefix = stem.split("-", 1)[0]
-
-        if prefix.isdigit() and absolute.lower().endswith(".zip"):
-            archives.setdefault(int(prefix), []).append(absolute)
-
-        if text.lower() == "next page":
-            next_url = absolute
-
-    return archives, next_url
+def catalog_cache_path(cache_catalog: Path, page: int, languages: list[str]) -> Path:
+    key = ",".join(languages) if languages else "all"
+    digest = hashlib.sha1(key.encode("utf-8")).hexdigest()[:12]
+    return cache_catalog / f"{digest}-page-{page}.json"
 
 
-def archive_rank(url: str, book_id: int) -> tuple[int, str]:
-    name = Path(urllib.parse.urlparse(url).path).name.lower()
-    if name == f"{book_id}-0.zip":
-        return 0, name
-    if name == f"{book_id}.zip":
-        return 1, name
-    if name == f"{book_id}-8.zip":
-        return 2, name
-    return 3, name
+def fetch_catalog_page(page: int, languages: list[str], cache_catalog: Path) -> tuple[dict, bool]:
+    path = catalog_cache_path(cache_catalog, page, languages)
+    url = catalog_url(page, languages)
+
+    try:
+        payload = request_json(url)
+        path.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        return payload, False
+    except Exception as error:
+        if path.exists():
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                print(f"catalog page {page}: network failed ({error}); using cached page", file=sys.stderr)
+                return payload, True
+            except (OSError, json.JSONDecodeError):
+                pass
+        raise
+
+
+def mirror_directory(book_id: int) -> str:
+    value = str(book_id)
+    prefix = "/".join(value[:-1])
+    return f"{prefix}/{value}" if prefix else value
+
+
+def text_stems_from_metadata(book_id: int, metadata: dict) -> list[str]:
+    stems: list[str] = []
+    formats = metadata.get("formats") if isinstance(metadata.get("formats"), dict) else {}
+
+    for mime, url in formats.items():
+        if not isinstance(mime, str) or not mime.startswith("text/plain") or not isinstance(url, str):
+            continue
+        filename = Path(urllib.parse.urlparse(url).path).name
+        match = re.match(r"^(\d+(?:-[A-Za-z0-9]+)?)\.txt(?:\..*)?$", filename, re.IGNORECASE)
+        if match:
+            stems.append(match.group(1))
+
+    for stem in (f"{book_id}-0", str(book_id), f"{book_id}-8"):
+        if stem not in stems:
+            stems.append(stem)
+
+    return stems
+
+
+def book_candidates(book_id: int, metadata: dict, mirrors: list[str]) -> list[str]:
+    directory = mirror_directory(book_id)
+    candidates: list[str] = []
+
+    for mirror in mirrors:
+        base = mirror.rstrip("/")
+        for stem in text_stems_from_metadata(book_id, metadata):
+            candidates.append(f"{base}/{directory}/{stem}.zip")
+        candidates.extend(
+            [
+                f"{base}/cache/epub/{book_id}/pg{book_id}.txt",
+                f"{base}/cache/epub/{book_id}/pg{book_id}-images.txt",
+            ]
+        )
+
+    unique: list[str] = []
+    seen: set[str] = set()
+    for url in candidates:
+        if url not in seen:
+            seen.add(url)
+            unique.append(url)
+    return unique
 
 
 def decode_text(data: bytes) -> str:
@@ -184,49 +212,7 @@ def gzip_text(text: str) -> bytes:
     return gzip.compress(text.encode("utf-8"), compresslevel=9, mtime=0)
 
 
-def metadata_path(cache_metadata: Path, book_id: int) -> Path:
-    return cache_metadata / f"{book_id}.json"
-
-
-def fetch_metadata(ids: list[int], cache_metadata: Path) -> dict[int, dict]:
-    result: dict[int, dict] = {}
-    missing: list[int] = []
-
-    for book_id in ids:
-        path = metadata_path(cache_metadata, book_id)
-        if path.exists():
-            try:
-                result[book_id] = json.loads(path.read_text(encoding="utf-8"))
-                continue
-            except (OSError, json.JSONDecodeError):
-                path.unlink(missing_ok=True)
-        missing.append(book_id)
-
-    for start in range(0, len(missing), 32):
-        batch = missing[start:start + 32]
-        if not batch:
-            continue
-        query = urllib.parse.urlencode({"ids": ",".join(str(book_id) for book_id in batch)})
-        url: str | None = f"{GUTENDEX_BASE}?{query}"
-        while url:
-            payload = request_json(url)
-            for book in payload.get("results", []):
-                try:
-                    book_id = int(book["id"])
-                except (KeyError, TypeError, ValueError):
-                    continue
-                result[book_id] = book
-                metadata_path(cache_metadata, book_id).write_text(
-                    json.dumps(book, ensure_ascii=False, separators=(",", ":")),
-                    encoding="utf-8",
-                )
-            url = payload.get("next")
-
-    return result
-
-
-def compact_metadata(book_id: int, metadata: dict | None, file_name: str, compressed_bytes: int) -> dict:
-    metadata = metadata or {}
+def compact_metadata(book_id: int, metadata: dict, file_name: str, compressed_bytes: int) -> dict:
     authors = []
     for author in metadata.get("authors", []):
         name = author.get("name") if isinstance(author, dict) else None
@@ -267,19 +253,34 @@ def prepare_output(root: Path, output: Path) -> None:
 
 def download_book(
     book_id: int,
-    urls: list[str],
+    metadata: dict,
     cache_books: Path,
     max_book_bytes: int,
     delay: float,
+    mirrors: list[str],
 ) -> Path | None:
     cached = cache_books / f"{book_id}.txt.gz"
     if cached.exists() and cached.stat().st_size > 0:
         return cached
 
-    for url in sorted(urls, key=lambda value: archive_rank(value, book_id)):
+    for url in book_candidates(book_id, metadata, mirrors):
         try:
-            data = request_bytes(url, "application/zip,application/octet-stream", 90, max_book_bytes + 8 * 1024 * 1024, 0)
-            text = extract_archive(data, max_book_bytes)
+            if url.lower().endswith(".zip"):
+                data = request_bytes(
+                    url,
+                    "application/zip,application/octet-stream,*/*;q=0.5",
+                    90,
+                    max_book_bytes + 8 * 1024 * 1024,
+                    1,
+                )
+                text = extract_archive(data, max_book_bytes)
+            else:
+                data = request_bytes(url, "text/plain,*/*;q=0.5", 90, max_book_bytes, 1)
+                text = decode_text(data)
+
+            if not text.strip():
+                raise ValueError("book text is empty")
+
             compressed = gzip_text(text)
             cached.write_bytes(compressed)
             if delay > 0:
@@ -287,10 +288,18 @@ def download_book(
             return cached
         except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, ValueError, zipfile.BadZipFile, OSError) as error:
             print(f"skip candidate {url}: {error}", file=sys.stderr)
-            if delay > 0:
-                time.sleep(delay)
 
+    if delay > 0:
+        time.sleep(delay)
     return None
+
+
+def site_shell_bytes(output: Path) -> int:
+    total = 0
+    for path in output.rglob("*"):
+        if path.is_file() and "books" not in path.parts and "data" not in path.parts:
+            total += path.stat().st_size
+    return total
 
 
 def main() -> int:
@@ -299,45 +308,52 @@ def main() -> int:
     output = (root / args.output).resolve()
     cache = (root / args.cache).resolve()
     cache_books = cache / "books"
-    cache_metadata = cache / "metadata"
+    cache_catalog = cache / "catalog"
     cache_books.mkdir(parents=True, exist_ok=True)
-    cache_metadata.mkdir(parents=True, exist_ok=True)
+    cache_catalog.mkdir(parents=True, exist_ok=True)
     prepare_output(root, output)
 
     max_payload_bytes = max(0, args.max_site_bytes - CATALOG_RESERVE_BYTES)
     languages = [value.strip() for value in args.languages.split(",") if value.strip()]
-    next_harvest = harvest_url(languages)
+    mirrors = [value.strip().rstrip("/") for value in args.mirrors.split(",") if value.strip()]
+    if not mirrors:
+        mirrors = [value.strip().rstrip("/") for value in DEFAULT_MIRRORS.split(",") if value.strip()]
     catalog: list[dict] = []
     used_bytes = 0
-    seen_ids: set[int] = set()
-    harvest_pages = 0
+    catalog_pages = 0
+    cached_catalog_pages = 0
     failures = 0
+    page = 1
+    exhausted = False
 
-    while next_harvest and used_bytes < max_payload_bytes:
+    while used_bytes < max_payload_bytes and not exhausted:
         if args.max_books and len(catalog) >= args.max_books:
             break
 
-        print(f"harvest page {harvest_pages + 1}: {next_harvest}")
+        print(f"catalog page {page}: {catalog_url(page, languages)}")
         try:
-            archives, next_harvest = parse_harvest_page(next_harvest)
+            payload, used_cached_page = fetch_catalog_page(page, languages, cache_catalog)
         except Exception as error:
-            print(f"harvest failed: {error}", file=sys.stderr)
+            print(f"catalog failed on page {page}: {error}", file=sys.stderr)
             break
 
-        harvest_pages += 1
-        ids = [book_id for book_id in archives if book_id not in seen_ids]
-        try:
-            metadata = fetch_metadata(ids, cache_metadata)
-        except Exception as error:
-            print(f"metadata batch failed: {error}", file=sys.stderr)
-            metadata = {}
+        catalog_pages += 1
+        cached_catalog_pages += int(used_cached_page)
+        books = payload.get("results", [])
+        if not isinstance(books, list) or not books:
+            break
 
-        ids.sort(key=lambda book_id: int(metadata.get(book_id, {}).get("download_count") or 0), reverse=True)
-
-        for book_id in ids:
-            seen_ids.add(book_id)
+        for metadata in books:
             if args.max_books and len(catalog) >= args.max_books:
+                exhausted = True
                 break
+            if not isinstance(metadata, dict):
+                continue
+
+            try:
+                book_id = int(metadata["id"])
+            except (KeyError, TypeError, ValueError):
+                continue
 
             cached = cache_books / f"{book_id}.txt.gz"
             if cached.exists() and cached.stat().st_size > 0:
@@ -345,10 +361,11 @@ def main() -> int:
             else:
                 book_path = download_book(
                     book_id,
-                    archives[book_id],
+                    metadata,
                     cache_books,
                     args.max_book_bytes,
                     args.delay,
+                    mirrors,
                 )
 
             if book_path is None:
@@ -357,19 +374,20 @@ def main() -> int:
 
             size = book_path.stat().st_size
             if used_bytes + size > max_payload_bytes:
-                next_harvest = None
+                exhausted = True
                 break
 
             relative_file = f"books/{book_id}.txt.gz"
             shutil.copy2(book_path, output / relative_file)
             used_bytes += size
-            catalog.append(compact_metadata(book_id, metadata.get(book_id), relative_file, size))
+            catalog.append(compact_metadata(book_id, metadata, relative_file, size))
 
             if len(catalog) % 25 == 0:
                 print(f"included {len(catalog)} books, {used_bytes / 1024 / 1024:.1f} MiB compressed")
 
-        if args.delay > 0 and next_harvest:
-            time.sleep(args.delay)
+        if exhausted or not payload.get("next"):
+            break
+        page += 1
 
     catalog.sort(key=lambda book: (book["download_count"], -book["id"]), reverse=True)
     payload = {
@@ -377,24 +395,24 @@ def main() -> int:
         "count": len(catalog),
         "compressed_bytes": used_bytes,
         "languages": languages,
+        "source": "Gutendex metadata + Project Gutenberg mirror text",
         "books": catalog,
     }
     catalog_bytes = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     (output / "data" / "catalog.json").write_bytes(catalog_bytes)
-    total_bytes = used_bytes + len(catalog_bytes) + (output / "index.html").stat().st_size
+    total_bytes = used_bytes + len(catalog_bytes) + site_shell_bytes(output)
 
     stats = {
         "books": len(catalog),
         "book_bytes": used_bytes,
         "catalog_bytes": len(catalog_bytes),
         "estimated_site_bytes": total_bytes,
-        "harvest_pages": harvest_pages,
+        "catalog_pages": catalog_pages,
+        "cached_catalog_pages": cached_catalog_pages,
         "failures": failures,
+        "mirrors": mirrors,
     }
-    (output / "data" / "build.json").write_text(
-        json.dumps(stats, indent=2),
-        encoding="utf-8",
-    )
+    (output / "data" / "build.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
     print(json.dumps(stats, indent=2))
 
     if not catalog:

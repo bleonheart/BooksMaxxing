@@ -1,4 +1,4 @@
-name: Build and deploy Gutenberg library
+name: Build and deploy Codex
 
 on:
   push:
@@ -22,7 +22,8 @@ env:
   MAX_SITE_BYTES: "850000000"
   MAX_BOOK_BYTES: "26214400"
   MAX_BOOKS: "0"
-  DOWNLOAD_DELAY: "2"
+  DOWNLOAD_DELAY: "0.25"
+  GUTENBERG_MIRRORS: "https://aleph.gutenberg.org,https://mirrors.xmission.com/gutenberg"
 
 jobs:
   build:
@@ -42,13 +43,13 @@ jobs:
         shell: bash
         run: echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
 
-      - name: Restore Gutenberg text cache
+      - name: Restore Codex library cache
         uses: actions/cache@v4
         with:
-          path: .book-cache/books
-          key: gutenberg-books-v2-${{ runner.os }}-${{ steps.cache-key.outputs.week }}-${{ hashFiles('scripts/build_library.py') }}
+          path: .book-cache
+          key: codex-gutenberg-v3-${{ runner.os }}-${{ steps.cache-key.outputs.week }}-${{ hashFiles('scripts/build_library.py') }}
           restore-keys: |
-            gutenberg-books-v2-${{ runner.os }}-
+            codex-gutenberg-v3-${{ runner.os }}-
 
       - name: Build static library
         run: |
@@ -59,7 +60,8 @@ jobs:
             --max-site-bytes "$MAX_SITE_BYTES" \
             --max-book-bytes "$MAX_BOOK_BYTES" \
             --max-books "$MAX_BOOKS" \
-            --delay "$DOWNLOAD_DELAY"
+            --delay "$DOWNLOAD_DELAY" \
+            --mirrors "$GUTENBERG_MIRRORS"
 
       - name: Show build statistics
         run: cat site/data/build.json

@@ -1,4 +1,4 @@
-const CACHE_NAME = "booksmaxxing-shell-v4";
+const CACHE_NAME = "codex-shell-v4";
 const SHELL = [
     "./",
     "./index.html",

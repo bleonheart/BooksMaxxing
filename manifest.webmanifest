@@ -1,6 +1,6 @@
 {
-  "name": "BooksMaxxing",
-  "short_name": "BooksMaxxing",
+  "name": "Codex",
+  "short_name": "Codex",
   "description": "A static Project Gutenberg library and offline reader.",
   "start_url": "./",
   "scope": "./",
