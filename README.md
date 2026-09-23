@@ -1,8 +1,11 @@
 <p align="center">
-  <strong>Codex — Static Project Gutenberg Reader</strong><br/>
-  A deploy-time digital library built for GitHub Pages.<br/>
-  Search, browse, and read thousands of public-domain books without running a backend server.<br/><br/>
-  <img src="./logo.svg" alt="Codex Logo" width="220" />
+ <strong>Codex — Static Project Gutenberg Reader</strong><br/>
+ A deploy-time digital library built for GitHub Pages.<br/>
+ Search, browse, and read thousands of public-domain books without running a backend server.
+</p>
+
+<p align="center">
+ <img src="./logo.svg" alt="Codex Logo" width="220" />
 </p>
 
 <p align="center">
