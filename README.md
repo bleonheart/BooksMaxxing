@@ -12,8 +12,6 @@
   <img src="https://img.shields.io/badge/Backend-None-92b95a" alt="No Runtime Backend" />
 </p>
 
-<h1 align="center">Codex</h1>
-
 ---
 
 ## Quick Start
